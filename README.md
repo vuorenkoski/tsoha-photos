@@ -1,5 +1,7 @@
 # Valokuvien jakopalvelu
 
+Aineopintojen harjoitustyö: Tietokantasovellus (loppukesä)
+
 ## Idea
 
 Pavelun avulla käyttäjät voivat jakaa ja katsella valokuvia. Valokuviin voi liittää erinäisiä tietoja kuten niiden ottajia, paikkoja, henkilöitä ja ottamispäivämäärä.
