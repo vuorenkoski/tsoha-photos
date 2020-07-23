@@ -16,24 +16,24 @@ Käyttäjät
 Valokuvat
 
 - valokuva_id (SERIAL PRIMARY KEY)
-- kayttaja (kayttaja_id)
+- kayttaja (kayttaja_id, INT)
 - tiedostonimi (TEXT)
-- valokuvaaja (henkilo_id)
-- päivämäärä (DATE)
-- paikka_id (INTEGER)
+- valokuvaaja (henkilo_id, INT)
+- päivämäärä (TIMESTAMP)
+- paikka_id (INT)
 - tekstikuvaus (TEXT)
-- syöttämisen aikaleima (DATE)
+- syöttämisen aikaleima (TIMESTAMP)
 
 Henkilöt
 
 - henkilo_id (SERIAL PRIMARY KEY)
 - nimi (TEXT)
-- syntymavuosi (INTEGER)
+- syntymavuosi (INT)
 
 Valokuvien_henkilöt
 
-- henkilo_id (INTEGER)
-- valokuva_id (INTEGER)
+- Henkilö (henkilo_if, INT)
+- Valokuva (valokuva_id, INT)
 
 Avainsanat
 
@@ -42,8 +42,8 @@ Avainsanat
 
 Valokuvien_avainsanat
 
-- avainsana_id (INTEGER)
-- valukuva_id (INTEGER)
+- Avainsana (avainsana_id, INT)
+- Valokuva (valukuva_id, INT)
 
 Paikat
 
@@ -58,5 +58,5 @@ Paikat
 
 Oikeuksien_jako
 
-- valokuva_id (INTEGER)
-- kayttaja_id (INTEGER)
+- Valokuva (valokuva_id, INT)
+- Kayttaja (kayttaja_id, INT)
