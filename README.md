@@ -8,7 +8,7 @@ Pavelun avulla käyttäjät voivat jakaa ja katsella valokuvia. Valokuviin voi l
 
 ## Tietokantataulukot
 
-Käyttäjät
+Kayttajat
 
 - kayttaja_id (SERIAL PRIMARY KEY)
 - tunnus (TEXT)
@@ -21,10 +21,10 @@ Valokuvat
 - kayttaja (kayttaja_id, INT)
 - tiedostonimi (TEXT)
 - valokuvaaja (henkilo_id, INT)
-- päivämäärä (TIMESTAMP)
+- kuvausaika (TIMESTAMP)
 - paikka_id (INT)
 - tekstikuvaus (TEXT)
-- syöttämisen aikaleima (TIMESTAMP)
+- aikaleima (TIMESTAMP)
 
 Henkilöt
 
@@ -34,8 +34,8 @@ Henkilöt
 
 Valokuvien_henkilöt
 
-- Henkilö (henkilo_if, INT)
-- Valokuva (valokuva_id, INT)
+- henkilo (henkilo_id, INT)
+- valokuva (valokuva_id, INT)
 
 Avainsanat
 
@@ -44,8 +44,8 @@ Avainsanat
 
 Valokuvien_avainsanat
 
-- Avainsana (avainsana_id, INT)
-- Valokuva (valukuva_id, INT)
+- avainsana (avainsana_id, INT)
+- valokuva (valukuva_id, INT)
 
 Paikat
 
@@ -53,12 +53,12 @@ Paikat
 - paikannimi (TEXT)
 - maa (TEXT)
 - alue (TEXT)
-- kaupunki/kunta (TEXT)
-- long (INTEGER)
-- lat (INTEGER)
-- http-linkki (TEXT)
+- kaupunki_kunta (TEXT)
+- long (INT)
+- lat (INT)
+- http (TEXT)
 
-Oikeuksien_jako
+Oikeudet
 
-- Valokuva (valokuva_id, INT)
-- Kayttaja (kayttaja_id, INT)
+- valokuva (valokuva_id, INT)
+- kayttaja (kayttaja_id, INT)
