@@ -1,0 +1,12 @@
+<title>Photos -sovellus</title>
+
+<h1>Photos -sovellus</h1>
+
+{% if session.username %}
+<p>Olet kirjautunut nimellä {{ session.username }}</p>
+<a href="/logout">Kirjaudu ulos</a>
+{% else %}
+<p>Kirjaudu sisään <a href="/login">tästä</a></p>
+
+<p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>
+{% endif %}

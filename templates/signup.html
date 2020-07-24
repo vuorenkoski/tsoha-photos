@@ -1,0 +1,17 @@
+<title>Photos -sovellus</title>
+
+<h1>Photos -sovellus</h1>
+
+Luo käyttäjätunnus:
+
+<form action="/signupdata" method="POST">
+    <p>Tunnus:<br>
+    <input type="text" name="username"></p>
+    <p>Salasana:<br>
+    <input type="password" name="password"></p>
+    <input type="submit" value="luo tunnus">
+</form>
+
+{% if session.error %}
+<b>{{ session.error }}</b>
+{% endif %}
