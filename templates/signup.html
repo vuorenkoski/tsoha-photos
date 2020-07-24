@@ -12,6 +12,6 @@ Luo käyttäjätunnus:
     <input type="submit" value="luo tunnus">
 </form>
 
-{% if session.error %}
-<b>{{ session.error }}</b>
+{% if error %}
+<p><b>VIRHE: {{ error }}</b></p>
 {% endif %}

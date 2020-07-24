@@ -11,6 +11,7 @@ Kirjaudu sisään:
     <input type="submit" value="Kirjaudu">
 </form>
 
-{% if session.error %}
-<b>{{ session.error }}</b>
+{% if error %}
+<p><b>VIRHE: {{ error }}</b></p>
+<p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>
 {% endif %}

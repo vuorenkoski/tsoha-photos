@@ -4,6 +4,7 @@
 
 {% if session.username %}
 <p>Olet kirjautunut nimellä {{ session.username }}</p>
+<p>Valokuvien lataaminen <a href="/upload">tästä</a></p>
 <a href="/logout">Kirjaudu ulos</a>
 {% else %}
 <p>Kirjaudu sisään <a href="/login">tästä</a></p>
