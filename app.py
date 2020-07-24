@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
-app.config["PHOTOFOLDER"] = getenv("PHOTOFOLDER")
+app.config["PHOTOFOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 db = SQLAlchemy(app)
 
