@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, redirect, url_for
+from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
 from os import getenv
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
-app.config["PHOTOFOLDER"] = "photos/"
+app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 db = SQLAlchemy(app)
 
@@ -76,7 +76,7 @@ def upload_photo():
         result=db.session.execute(sql, {"userid":session["userid"]})
         id=result.fetchone()[0]
         db.session.commit()
-        img.save("static/"+app.config["PHOTOFOLDER"]+str(id)+".jpg")
+        img.save(os.path.join(app.config['UPLOAD_FOLDER'], str(id)+".jpg"))
         return redirect("/addinfo/"+str(id))
     return render_template("upload.html")
 
@@ -84,7 +84,11 @@ def upload_photo():
 def addinfo(id):
     if request.method == 'POST':
         pass
-    return render_template("addinfo.html", filename=url_for("static", filename=app.config["PHOTOFOLDER"] + str(id) + ".jpg"), date="")
+    return render_template("addinfo.html", filename=str(id)+".jpg", date="")
+
+@app.route('/photos/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route("/logout")
 def logout():
