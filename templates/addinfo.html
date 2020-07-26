@@ -1,4 +1,7 @@
-<title>Photos -sovellus</title>
-<h1>Lisää kuvan tiedot</h1>
+{% extends "layout.html" %}
+{% block title %}Muuta kuvan tietoja{% endblock %}
+
+{% block content %}
 <img src="{{ filename }}">
 <p>{{ date }}</p>
+{% endblock %}

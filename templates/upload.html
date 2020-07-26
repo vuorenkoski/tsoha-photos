@@ -1,5 +1,8 @@
-<title>Photos -sovellus</title>
-<h1>Tallenna uusi kuva</h1>
+{% extends "layout.html" %}
+{% block title %}Tallenna uusi kuva{% endblock %}
+
+{% block content %}
+
 <form method=post enctype=multipart/form-data>
   <input type=file name=photo>
   <input type=submit value=Lataa>
@@ -8,3 +11,4 @@
 {% if message %}
 <p><b>{{ message }}</b></p>
 {% endif %}
+{% endblock %}

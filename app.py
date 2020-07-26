@@ -16,30 +16,31 @@ db = SQLAlchemy(app)
 def index():
     return render_template("index.html")
 
-@app.route("/login")
+@app.route("/login",methods=["GET"])
 def login():
     return render_template("login.html")
 
-@app.route("/logindata",methods=["POST"])
+@app.route("/login",methods=["POST"])
 def logindata():
     username = request.form["username"]
     password = request.form["password"]
-    sql = "SELECT tunnus, salasana FROM photos_kayttajat WHERE tunnus=:username"
+    sql = "SELECT id, tunnus, salasana FROM photos_kayttajat WHERE tunnus=:username"
     result = db.session.execute(sql, {"username":username})
     user = result.fetchone()
     if user == None:
         return render_template("login.html", error="tunnusta ei ole olemassa")
-    if check_password_hash(user[1],password):
-        session["username"] = user[0]
+    if check_password_hash(user[2],password):
+        session["userid"] = int(user[0])
+        session["username"] = user[1]
         return redirect("/")
 
     return render_template("login.html", error="salasana on väärin")
 
-@app.route("/signup")
+@app.route("/signup",methods=["GET"])
 def signup():
     return render_template("signup.html")
 
-@app.route("/signupdata",methods=["POST"])
+@app.route("/signup",methods=["POST"])
 def signupdata():
     username = request.form["username"]
     password = request.form["password"]
@@ -65,21 +66,25 @@ def upload_photo():
     if request.method == 'POST':
         photo = request.files["photo"]
         if photo.filename == "":
-#            flash('No selected file')
             return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
-        if not photo.filename.endswith(".jpg"):
+        if not photo.filename.lower().endswith(".jpg"):
             return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
         img = Image.open(photo)
         img.thumbnail((800,600))
-        img.save("static/"+app.config["PHOTOFOLDER"]+"2.jpg")
-        return render_template("addinfo.html", filename=url_for("static", filename=app.config["PHOTOFOLDER"] + "2.jpg"), date=img._getexif()[36867])
+        date=img._getexif()[36867]
+        sql = "INSERT INTO photos_valokuvat (kayttaja_id) VALUES (:userid) RETURNING id;"
+        result=db.session.execute(sql, {"userid":session["userid"]})
+        id=result.fetchone()[0]
+        db.session.commit()
+        img.save("static/"+app.config["PHOTOFOLDER"]+str(id)+".jpg")
+        return redirect("/addinfo/"+str(id))
     return render_template("upload.html")
 
-@app.route("/addinfo", methods=['GET', 'POST'])
-def addinfo():
+@app.route("/addinfo/<int:id>", methods=['GET', 'POST'])
+def addinfo(id):
     if request.method == 'POST':
         pass
-    return render_template("addinfo.html")
+    return render_template("addinfo.html", filename=url_for("static", filename=app.config["PHOTOFOLDER"] + str(id) + ".jpg"), date="")
 
 @app.route("/logout")
 def logout():

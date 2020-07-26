@@ -1,13 +1,11 @@
-<title>Photos -sovellus</title>
-
-<h1>Photos -sovellus</h1>
+{% extends "layout.html" %}
+{% block title %}Etusivu{% endblock %}
+{% block content %}
 
 {% if session.username %}
-<p>Olet kirjautunut nimellä {{ session.username }}</p>
 <p>Valokuvien lataaminen <a href="/upload">tästä</a></p>
-<a href="/logout">Kirjaudu ulos</a>
 {% else %}
 <p>Kirjaudu sisään <a href="/login">tästä</a></p>
-
 <p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>
 {% endif %}
+{% endblock %}

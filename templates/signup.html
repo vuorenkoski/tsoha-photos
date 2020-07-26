@@ -1,10 +1,11 @@
-<title>Photos -sovellus</title>
+{% extends "layout.html" %}
+{% block title %}Reskiteröityminen{% endblock %}
 
-<h1>Photos -sovellus</h1>
+{% block content %}
 
 Luo käyttäjätunnus:
 
-<form action="/signupdata" method="POST">
+<form action="/signup" method="POST">
     <p>Tunnus:<br>
     <input type="text" name="username"></p>
     <p>Salasana:<br>
@@ -15,3 +16,4 @@ Luo käyttäjätunnus:
 {% if error %}
 <p><b>VIRHE: {{ error }}</b></p>
 {% endif %}
+{% endblock %}

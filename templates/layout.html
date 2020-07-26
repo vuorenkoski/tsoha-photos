@@ -1,0 +1,21 @@
+<!doctype html>
+<title>Photos -sovellus</title>
+<h1>Photos -sovellus</h1>
+<h2>{% block title %}{% endblock %}</h2>
+
+<p>{% block content %}{% endblock %}</p>
+<br><hr>
+{% if session.username %}
+
+<table style="width:100%">
+<tr>
+<td style="width:20%">Kirjautunut: {{ session.username }}</td>
+<td style="width:20%"><a href="/">Etusivu</a></td>
+<td style="width:20%"><a href="/logout">Kirjaudu ulos</a></td>
+<td style="width:40%"></td>
+</tr>
+</table>
+
+{% else %}
+<p>Kirjaudu sisään <a href="/login">tästä</a></p>
+{% endif %}
