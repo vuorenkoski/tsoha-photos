@@ -2,6 +2,13 @@
 {% block title %}Muuta kuvan tietoja{% endblock %}
 
 {% block content %}
-<img src="/photos/{{ filename }}">
-<p>{{ date }}</p>
+<img src="/photos/photo{{ photoid }}.jpg">
+<form action="/addinfo/{{ photoid }}" method="POST">
+    <p>Kuvausaika:
+    <input type="text" name="kuvausaika" value="{{ kuvausaika }}"></p>
+    <p>Kuvaus:
+    <input type="text" name="tekstikuvaus" value="{{ tekstikuvaus }}"></p>
+    <input type="submit" value="Muuta tietoja">
+</form>
+
 {% endblock %}

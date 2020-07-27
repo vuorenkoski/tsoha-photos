@@ -3,6 +3,7 @@ from os import getenv
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from PIL import Image
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -11,6 +12,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 db = SQLAlchemy(app)
+PHOTO_SIZE = (1600,800)
+PHTO_THUMB_SIZE = (100,100)
 
 @app.route("/")
 def index():
@@ -61,7 +64,7 @@ def signupdata():
     session["username"] = username
     return redirect("/")
 
-@app.route("/upload", methods=['GET', 'POST'])
+@app.route("/upload", methods=["GET", "POST"])
 def upload_photo():
     if request.method == 'POST':
         photo = request.files["photo"]
@@ -70,23 +73,38 @@ def upload_photo():
         if not photo.filename.lower().endswith(".jpg"):
             return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
         img = Image.open(photo)
-        img.thumbnail((800,600))
+        img.thumbnail(PHOTO_SIZE)
         date=img._getexif()[36867]
-        sql = "INSERT INTO photos_valokuvat (kayttaja_id) VALUES (:userid) RETURNING id;"
-        result=db.session.execute(sql, {"userid":session["userid"]})
+        if date!="":
+            date=date[0:4]+"-"+date[5:7]+"-"+date[8:] # exif standari YYYY:MMM:DD HH:MM:SS
+        sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus) VALUES (:userid, :kuvausaika, NOW(), :tekstikuvaus) RETURNING id;"
+        result=db.session.execute(sql, {"userid":session["userid"], "kuvausaika":date, "tekstikuvaus":"--"})
         id=result.fetchone()[0]
         db.session.commit()
-        img.save(os.path.join(app.config['UPLOAD_FOLDER'], str(id)+".jpg"))
+        img.save(os.path.join(app.config['UPLOAD_FOLDER'], "photo"+str(id)+".jpg"))
+        img.thumbnail(PHTO_THUMB_SIZE)
+        img.save(os.path.join(app.config['UPLOAD_FOLDER'], "photo"+str(id)+"_thmb.jpg"))
         return redirect("/addinfo/"+str(id))
     return render_template("upload.html")
 
-@app.route("/addinfo/<int:id>", methods=['GET', 'POST'])
+@app.route("/addinfo/<int:id>", methods=["GET"])
 def addinfo(id):
-    if request.method == 'POST':
-        pass
-    return render_template("addinfo.html", filename=str(id)+".jpg", date="")
+    sql = "SELECT kuvausaika, valokuvaaja_id, tekstikuvaus FROM photos_valokuvat WHERE id=:id"
+    data = db.session.execute(sql, {"id":id}).fetchone()
+#    if data[1]!=None:
+#        pass
+    return render_template("addinfo.html", photoid=id, kuvausaika=data[0], tekstikuvaus=data[2])
 
-@app.route('/photos/<filename>')
+@app.route("/addinfo/<int:id>", methods=["POST"])
+def addinfodata(id):
+    kuvausaika = request.form["kuvausaika"]
+    tekstikuvaus = request.form["tekstikuvaus"]
+    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus WHERE id=:id;"
+    db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus})
+    db.session.commit()
+    return redirect("/")
+
+@app.route("/photos/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
@@ -94,9 +112,3 @@ def uploaded_file(filename):
 def logout():
     del session["username"]
     return redirect("/")
-
-def limit_size(img):
-    limit=max(img.shape[0]/600, img.shape[0]/800)
-    if limit>1:
-        return img.resize()
-    return img

@@ -1,0 +1,1 @@
+Tähän alihakemistoon tallennetaan valokuvat
