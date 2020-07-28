@@ -17,7 +17,13 @@ PHTO_THUMB_SIZE = (100,100)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if "userid" in session:
+        sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, nimi FROM photos_valokuvat LEFT JOIN photos_henkilot ON valokuvaaja_id=photos_henkilot.id WHERE kayttaja_id=:userid"
+        result = db.session.execute(sql, {"userid":session["userid"]})
+        photos = result.fetchall()
+        return render_template("index.html", photos=photos)
+    else:
+        return render_template("index.html")
 
 @app.route("/login",methods=["GET"])
 def login():
@@ -76,7 +82,7 @@ def upload_photo():
         img.thumbnail(PHOTO_SIZE)
         date=img._getexif()[36867]
         if date!="":
-            date=date[0:4]+"-"+date[5:7]+"-"+date[8:] # exif standari YYYY:MMM:DD HH:MM:SS
+            date=date[0:4]+"-"+date[5:7]+"-"+date[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
         sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus) VALUES (:userid, :kuvausaika, NOW(), :tekstikuvaus) RETURNING id;"
         result=db.session.execute(sql, {"userid":session["userid"], "kuvausaika":date, "tekstikuvaus":"--"})
         id=result.fetchone()[0]
@@ -89,20 +95,49 @@ def upload_photo():
 
 @app.route("/addinfo/<int:id>", methods=["GET"])
 def addinfo(id):
-    sql = "SELECT kuvausaika, valokuvaaja_id, tekstikuvaus FROM photos_valokuvat WHERE id=:id"
+    sql = "SELECT kuvausaika, nimi, tekstikuvaus FROM photos_valokuvat LEFT JOIN photos_henkilot ON photos_valokuvat.valokuvaaja_id=photos_henkilot.id WHERE photos_valokuvat.id=:id"
     data = db.session.execute(sql, {"id":id}).fetchone()
-#    if data[1]!=None:
-#        pass
-    return render_template("addinfo.html", photoid=id, kuvausaika=data[0], tekstikuvaus=data[2])
+
+    # Haetaan valokuvien henkilot
+    sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
+    henkilot = db.session.execute(sql, {"id":id}).fetchall()
+    henkilot = ", ".join(t[0] for t in henkilot)
+
+    return render_template("addinfo.html", photoid=id, paivamaara=data[0].strftime("%Y-%m-%d"), aika=data[0].strftime("%H:%M"), tekstikuvaus=data[2], kuvaaja=data[1], henkilot=henkilot)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfodata(id):
-    kuvausaika = request.form["kuvausaika"]
+    kuvausaika = request.form["kuvauspaiva"] + " " + request.form["aika"]
     tekstikuvaus = request.form["tekstikuvaus"]
-    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus WHERE id=:id;"
-    db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus})
+
+    kuvaajaid=lisaahenkilo(request.form["kuvaaja"])
+
+    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid WHERE id=:id;"
+    db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus, "kuvaajaid":kuvaajaid})
     db.session.commit()
     return redirect("/")
+
+@app.route("/addperson/<int:id>", methods=["GET"])
+def addperson(id):
+    # Haetaan valokuvien henkilot
+    sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
+    henkilot = db.session.execute(sql, {"id":id}).fetchall()
+
+    sql = "SELECT nimi FROM photos_henkilot"
+    henkilot_kaikki = db.session.execute(sql)
+    return render_template("addperson.html", persons=henkilot, allpersons=henkilot_kaikki, photoid=id) 
+
+@app.route("/addperson/<int:id>", methods=["POST"])
+def addpersondata(id):
+    for k,v in request.form.items():
+        print(k)
+        print(v)
+    hid = lisaahenkilo(request.form["henkilo"])
+    sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:hid AND valokuva_id=:vid"
+    if db.session.execute(sql, {"hid":hid, "vid":id}).fetchone()[0]==0:
+        db.session.execute("INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:hid, :vid)", {"hid":hid, "vid":id})
+        db.session.commit()
+    return redirect("/addperson/"+str(id))
 
 @app.route("/photos/<filename>")
 def uploaded_file(filename):
@@ -112,3 +147,15 @@ def uploaded_file(filename):
 def logout():
     del session["username"]
     return redirect("/")
+
+# Lisää henkilön tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
+def lisaahenkilo(nimi):
+    if nimi=="" or nimi=="None":
+        return None
+    sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:nimi)"
+    henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
+    if henkiloid==None:
+        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:kuvaaja,0) RETURNING id;"
+        henkiloid = db.session.execute(sql, {"kuvaaja":nimi}).fetchone()
+        db.session.commit()
+    return henkiloid[0]

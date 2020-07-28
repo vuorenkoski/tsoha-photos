@@ -2,13 +2,23 @@
 {% block title %}Muuta kuvan tietoja{% endblock %}
 
 {% block content %}
-<img src="/photos/photo{{ photoid }}.jpg">
+<img src="/photos/photo{{ photoid }}.jpg" height="300">
 <form action="/addinfo/{{ photoid }}" method="POST">
-    <p>Kuvausaika:
-    <input type="text" name="kuvausaika" value="{{ kuvausaika }}"></p>
+    <p>Päivämäärä:
+        <input type="date" name="kuvauspaiva" value="{{ paivamaara }}"></p>
+    <p>Kellonaika:
+        <input type="time" name="aika" value="{{ aika }}"></p>
+    <p>Kuvaaja:
+        <input type="text" name="kuvaaja" value="{{ kuvaaja }}"></p>
+        </p>
     <p>Kuvaus:
-    <input type="text" name="tekstikuvaus" value="{{ tekstikuvaus }}"></p>
-    <input type="submit" value="Muuta tietoja">
+        <input type="text" name="tekstikuvaus" value="{{ tekstikuvaus }}"></p>
+    <p>Valokuvan henkilöt: {{ henkilot }}<br>
+    <a href="/addperson/{{ photoid }}">Muuta henkilöitä</a>
+    </p>
+    <input type="submit" value="Talenna tiedot">
+
 </form>
+
 
 {% endblock %}
