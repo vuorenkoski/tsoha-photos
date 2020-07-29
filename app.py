@@ -1,10 +1,9 @@
-from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
-from os import getenv
+from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory, make_response
+from os import getenv, path
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from PIL import Image
 from datetime import datetime
-import os
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
@@ -12,8 +11,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 db = SQLAlchemy(app)
+
 PHOTO_SIZE = (1600,800)
-PHTO_THUMB_SIZE = (100,100)
+PHOTO_THUMB_SIZE = (100,100)
+USE_PSQL_STORAGE_FOR_JPG = True
 
 @app.route("/")
 def index():
@@ -70,28 +71,31 @@ def signupdata():
     session["username"] = username
     return redirect("/")
 
-@app.route("/upload", methods=["GET", "POST"])
+@app.route("/upload", methods=["GET"])
 def upload_photo():
-    if request.method == 'POST':
-        photo = request.files["photo"]
-        if photo.filename == "":
-            return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
-        if not photo.filename.lower().endswith(".jpg"):
-            return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
-        img = Image.open(photo)
-        img.thumbnail(PHOTO_SIZE)
-        date=img._getexif()[36867]
-        if date!="":
-            date=date[0:4]+"-"+date[5:7]+"-"+date[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
-        sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus) VALUES (:userid, :kuvausaika, NOW(), :tekstikuvaus) RETURNING id;"
-        result=db.session.execute(sql, {"userid":session["userid"], "kuvausaika":date, "tekstikuvaus":"--"})
-        id=result.fetchone()[0]
-        db.session.commit()
-        img.save(os.path.join(app.config['UPLOAD_FOLDER'], "photo"+str(id)+".jpg"))
-        img.thumbnail(PHTO_THUMB_SIZE)
-        img.save(os.path.join(app.config['UPLOAD_FOLDER'], "photo"+str(id)+"_thmb.jpg"))
-        return redirect("/addinfo/"+str(id))
     return render_template("upload.html")
+
+@app.route("/upload", methods=["POST"])
+def upload_photodata():
+    photo = request.files["photo"]
+    if photo.filename == "":
+        return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
+    if not photo.filename.lower().endswith(".jpg"):
+        return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
+    img = Image.open(photo)
+    img.thumbnail(PHOTO_SIZE)
+    date=img._getexif()[36867]
+    if date!="":
+        date=date[0:4]+"-"+date[5:7]+"-"+date[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
+    sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus) VALUES (:userid, :kuvausaika, NOW(), :tekstikuvaus) RETURNING id"
+    result=db.session.execute(sql, {"userid":session["userid"], "kuvausaika":date, "tekstikuvaus":"--"})
+    id=result.fetchone()[0]
+    db.session.commit()
+
+    save_photo(img, "photo"+str(id)+".jpg")
+    img.thumbnail(PHOTO_THUMB_SIZE)
+    save_photo(img, "photo"+str(id)+"_thmb.jpg")
+    return redirect("/addinfo/"+str(id))
 
 @app.route("/addinfo/<int:id>", methods=["GET"])
 def addinfo(id):
@@ -130,11 +134,11 @@ def addinfodata(id):
     poistu = True
     kuvausaika = request.form["kuvauspaiva"] + " " + request.form["aika"]
     tekstikuvaus = request.form["tekstikuvaus"]
-    kuvaajaid=lisaa_henkilo(request.form["kuvaaja"])
+    kuvaajaid=add_person(request.form["kuvaaja"])
 
     # Henkilöiden lisääminen ja poistaminen
     if request.form["lisaaHenkilo"]!="":
-        hid = lisaa_henkilo(request.form["lisaaHenkilo"])
+        hid = add_person(request.form["lisaaHenkilo"])
         sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:hid AND valokuva_id=:vid"
         if db.session.execute(sql, {"hid":hid, "vid":id}).fetchone()[0]==0:
             db.session.execute("INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:hid, :vid)", {"hid":hid, "vid":id})
@@ -151,7 +155,7 @@ def addinfodata(id):
 
     # Avainsanojen lisääminen ja poistaminen
     if request.form["lisaaAvainsana"]!="":
-        aid = lisaa_avainsana(request.form["lisaaAvainsana"])
+        aid = add_keyword(request.form["lisaaAvainsana"])
         sql = "SELECT COUNT(*) FROM photos_valokuvienavainsanat WHERE avainsana_id=:aid AND valokuva_id=:vid"
         if db.session.execute(sql, {"aid":aid, "vid":id}).fetchone()[0]==0:
             db.session.execute("INSERT INTO photos_valokuvienavainsanat (avainsana_id, valokuva_id) VALUES (:aid, :vid)", {"aid":aid, "vid":id})
@@ -166,7 +170,7 @@ def addinfodata(id):
             db.session.commit()
         poistu=False
 
-    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid WHERE id=:id;"
+    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid WHERE id=:id"
     db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus, "kuvaajaid":kuvaajaid})
     db.session.commit()
 
@@ -175,9 +179,34 @@ def addinfodata(id):
     else:
         return redirect("/addinfo/"+str(id))
 
-@app.route("/photos/<filename>")
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route("/places", methods=["GET"])
+def places():
+    pass
+
+@app.route("/places", methods=["POST"])
+def places():
+    pass
+
+@app.route("/place/<int:id>", methods=["GET"])
+def placeinfo(id):
+    pass
+
+@app.route("/place/<int:id>", methods=["POST"])
+def placeinfodata(id):
+    pass
+
+@app.route("/photos/<tiedostonimi>")
+def show_photo(tiedostonimi):
+    if USE_PSQL_STORAGE_FOR_JPG:
+        sql = "SELECT kuva FROM photos_jpgkuva WHERE tiedostonimi=:tiedostonimi"
+        kuva = db.session.execute(sql, {"tiedostonimi":tiedostonimi}).fetchone()[0]
+        response = make_response(bytes(kuva))
+        response.headers.set('Content-Type', 'image/jpeg')
+        return response
+        retun
+    else:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], tiedostonimi)
 
 @app.route("/logout")
 def logout():
@@ -185,52 +214,35 @@ def logout():
     return redirect("/")
 
 # Lisää henkilön tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
-def lisaa_henkilo(nimi):
+def add_person(nimi):
     if nimi=="" or nimi=="None":
         return None
     sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:nimi)"
     henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
     if henkiloid==None:
-        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:nimi,0) RETURNING id;"
+        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:nimi,0) RETURNING id"
         henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
         db.session.commit()
     return henkiloid[0]
 
 # Lisää avainsanan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
-def lisaa_avainsana(avainsana):
+def add_keyword(avainsana):
     if avainsana=="" or avainsana=="None":
         return None
     sql = "SELECT id FROM photos_avainsanat WHERE LOWER(avainsana)=LOWER(:avainsana)"
     avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
     if avainsanaid==None:
-        sql = "INSERT INTO photos_avainsanat (avainsana) VALUES (:avainsana) RETURNING id;"
+        sql = "INSERT INTO photos_avainsanat (avainsana) VALUES (:avainsana) RETURNING id"
         avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
         db.session.commit()
     return avainsanaid[0]
 
-
-
-
-
-# EI TARVITA ENÄÄ
-@app.route("/addperson/<int:id>", methods=["GET"])
-def addperson(id):
-    # Haetaan valokuvien henkilot
-    sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
-    henkilot = db.session.execute(sql, {"id":id}).fetchall()
-
-    sql = "SELECT nimi FROM photos_henkilot"
-    henkilot_kaikki = db.session.execute(sql)
-    return render_template("addperson.html", persons=henkilot, allpersons=henkilot_kaikki, photoid=id) 
-
-@app.route("/addperson/<int:id>", methods=["POST"])
-def addpersondata(id):
-    for k,v in request.form.items():
-        print(k)
-        print(v)
-    hid = lisaahenkilo(request.form["henkilo"])
-    sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:hid AND valokuva_id=:vid"
-    if db.session.execute(sql, {"hid":hid, "vid":id}).fetchone()[0]==0:
-        db.session.execute("INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:hid, :vid)", {"hid":hid, "vid":id})
+def save_photo(kuva, tiedostonimi):
+    if USE_PSQL_STORAGE_FOR_JPG:
+        f=BytesIO()
+        kuva.save(f, format="jpeg")
+        sql = "INSERT INTO photos_jpgkuva (tiedostonimi, kuva) VALUES (:tiedostonimi, :kuva)"
+        db.session.execute(sql, {"tiedostonimi":tiedostonimi, "kuva":f.getvalue()})
         db.session.commit()
-    return redirect("/addperson/"+str(id))
+    else:
+        kuva.save(path.join(app.config['UPLOAD_FOLDER'], tiedostonimi))

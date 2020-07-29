@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Muuta paikan tietoja{% endblock %}
+
+{% block content %}
+
+<h2>{{ paikka }}</h2>
+
+<form action="/place/{{ paikkaid }}" method="POST">
+
+    <p>Kaupunki:
+        <input type="text" name="kaupunki" value="{{ alue }}"></p>
+
+    <p>Alue: 
+        <input type="text" name="alue" value="{{ alue }}"></p>
+
+    <p>Maa:
+        <input type="text" name="maa" value="{{ maa }}"></p>
+    
+    <p>www-sivu:
+        <input type="url" name="wwwsivu" value="{{ wwwsivu }}"></p>
+        
+    <input type="submit" value="Talenna tiedot">
+
+</form>
+
+
+{% endblock %}

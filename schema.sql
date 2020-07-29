@@ -4,3 +4,5 @@ CREATE TABLE photos_henkilot (id SERIAL PRIMARY KEY, nimi TEXT, syntymavuosi INT
 CREATE TABLE photos_valokuvienhenkilot (id SERIAL PRIMARY KEY, henkilo_id INT, valokuva_id INT);
 CREATE TABLE photos_avainsanat (id SERIAL PRIMARY KEY, avainsana TEXT);
 CREATE TABLE photos_valokuvienavainsanat (id SERIAL PRIMARY KEY, avainsana_id INT, valokuva_id INT);
+CREATE TABLE photos_jpgkuva (id SERIAL PRIMARY KEY, tiedostonimi TEXT, kuva BYTEA);
+CREATE TABLE photos_paikat (id SERIAL PRIMARY KEY, paikka TEXT, maa TEXT, alue TEXT, kaupunki TEXT, wwwviite TEXT);
