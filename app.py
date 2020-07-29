@@ -101,22 +101,118 @@ def addinfo(id):
     # Haetaan valokuvien henkilot
     sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
     henkilot = db.session.execute(sql, {"id":id}).fetchall()
-    henkilot = ", ".join(t[0] for t in henkilot)
+    henkilostr = ", ".join(t[0] for t in henkilot)
+    if henkilostr=="":
+        henkilostr="--"
+    sql = "SELECT nimi FROM photos_henkilot"
+    kaikkiHenkilot = db.session.execute(sql)
 
-    return render_template("addinfo.html", photoid=id, paivamaara=data[0].strftime("%Y-%m-%d"), aika=data[0].strftime("%H:%M"), tekstikuvaus=data[2], kuvaaja=data[1], henkilot=henkilot)
+    # Haetaan valokuvien avainsanat
+    sql = "SELECT avainsana FROM photos_avainsanat,photos_valokuvienavainsanat WHERE valokuva_id=:id AND photos_avainsanat.id=avainsana_id"
+    avainsanat = db.session.execute(sql, {"id":id}).fetchall()
+    avainsanastr = ", ".join(t[0] for t in avainsanat)
+    if avainsanastr=="":
+        avainsanastr="--"
+    sql = "SELECT avainsana FROM photos_avainsanat"
+    kaikkiAvainsanat = db.session.execute(sql)
+
+    if data[1]==None:
+        kuvaaja=""
+    else:
+        kuvaaja=data[1]
+
+    return render_template("addinfo.html", photoid=id, paivamaara=data[0].strftime("%Y-%m-%d"), aika=data[0].strftime("%H:%M"), 
+        tekstikuvaus=data[2], kuvaaja=kuvaaja, henkilostr=henkilostr, henkilot=henkilot, kaikkiHenkilot=kaikkiHenkilot, 
+        avainsanastr=avainsanastr, avainsanat=avainsanat, kaikkiAvainsanat=kaikkiAvainsanat)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfodata(id):
+    poistu = True
     kuvausaika = request.form["kuvauspaiva"] + " " + request.form["aika"]
     tekstikuvaus = request.form["tekstikuvaus"]
+    kuvaajaid=lisaa_henkilo(request.form["kuvaaja"])
 
-    kuvaajaid=lisaahenkilo(request.form["kuvaaja"])
+    # Henkilöiden lisääminen ja poistaminen
+    if request.form["lisaaHenkilo"]!="":
+        hid = lisaa_henkilo(request.form["lisaaHenkilo"])
+        sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:hid AND valokuva_id=:vid"
+        if db.session.execute(sql, {"hid":hid, "vid":id}).fetchone()[0]==0:
+            db.session.execute("INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:hid, :vid)", {"hid":hid, "vid":id})
+            db.session.commit()
+        poistu=False
+
+    if request.form["poistaHenkilo"]!="":
+        sql = "SELECT photos_valokuvienhenkilot.id FROM photos_valokuvienhenkilot, photos_henkilot WHERE henkilo_id=photos_henkilot.id AND nimi=:nimi AND valokuva_id=:vid"
+        linkid = db.session.execute(sql, {"nimi":request.form["poistaHenkilo"], "vid":id}).fetchone()
+        if linkid != None:
+            db.session.execute("DELETE FROM photos_valokuvienhenkilot WHERE id=:id", {"id":linkid[0]})
+            db.session.commit()
+        poistu=False
+
+    # Avainsanojen lisääminen ja poistaminen
+    if request.form["lisaaAvainsana"]!="":
+        aid = lisaa_avainsana(request.form["lisaaAvainsana"])
+        sql = "SELECT COUNT(*) FROM photos_valokuvienavainsanat WHERE avainsana_id=:aid AND valokuva_id=:vid"
+        if db.session.execute(sql, {"aid":aid, "vid":id}).fetchone()[0]==0:
+            db.session.execute("INSERT INTO photos_valokuvienavainsanat (avainsana_id, valokuva_id) VALUES (:aid, :vid)", {"aid":aid, "vid":id})
+            db.session.commit()
+        poistu=False
+
+    if request.form["poistaAvainsana"]!="":
+        sql = "SELECT photos_valokuvienavainsanat.id FROM photos_valokuvienavainsanat, photos_avainsanat WHERE avainsana_id=photos_avainsanat.id AND avainsana=:avainsana AND valokuva_id=:vid"
+        linkid = db.session.execute(sql, {"avainsana":request.form["poistaAvainsana"], "vid":id}).fetchone()
+        if linkid != None:
+            db.session.execute("DELETE FROM photos_valokuvienavainsanat WHERE id=:id", {"id":linkid[0]})
+            db.session.commit()
+        poistu=False
 
     sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid WHERE id=:id;"
     db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus, "kuvaajaid":kuvaajaid})
     db.session.commit()
+
+    if poistu:
+        return redirect("/")
+    else:
+        return redirect("/addinfo/"+str(id))
+
+@app.route("/photos/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route("/logout")
+def logout():
+    del session["username"]
     return redirect("/")
 
+# Lisää henkilön tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
+def lisaa_henkilo(nimi):
+    if nimi=="" or nimi=="None":
+        return None
+    sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:nimi)"
+    henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
+    if henkiloid==None:
+        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:nimi,0) RETURNING id;"
+        henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
+        db.session.commit()
+    return henkiloid[0]
+
+# Lisää avainsanan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
+def lisaa_avainsana(avainsana):
+    if avainsana=="" or avainsana=="None":
+        return None
+    sql = "SELECT id FROM photos_avainsanat WHERE LOWER(avainsana)=LOWER(:avainsana)"
+    avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
+    if avainsanaid==None:
+        sql = "INSERT INTO photos_avainsanat (avainsana) VALUES (:avainsana) RETURNING id;"
+        avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
+        db.session.commit()
+    return avainsanaid[0]
+
+
+
+
+
+# EI TARVITA ENÄÄ
 @app.route("/addperson/<int:id>", methods=["GET"])
 def addperson(id):
     # Haetaan valokuvien henkilot
@@ -138,24 +234,3 @@ def addpersondata(id):
         db.session.execute("INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:hid, :vid)", {"hid":hid, "vid":id})
         db.session.commit()
     return redirect("/addperson/"+str(id))
-
-@app.route("/photos/<filename>")
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-@app.route("/logout")
-def logout():
-    del session["username"]
-    return redirect("/")
-
-# Lisää henkilön tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
-def lisaahenkilo(nimi):
-    if nimi=="" or nimi=="None":
-        return None
-    sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:nimi)"
-    henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
-    if henkiloid==None:
-        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:kuvaaja,0) RETURNING id;"
-        henkiloid = db.session.execute(sql, {"kuvaaja":nimi}).fetchone()
-        db.session.commit()
-    return henkiloid[0]

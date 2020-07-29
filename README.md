@@ -54,8 +54,6 @@ Paikat
 - maa (TEXT)
 - alue (TEXT)
 - kaupunki_kunta (TEXT)
-- long (INT)
-- lat (INT)
 - http (TEXT)
 
 Oikeudet

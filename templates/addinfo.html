@@ -4,18 +4,57 @@
 {% block content %}
 <img src="/photos/photo{{ photoid }}.jpg" height="300">
 <form action="/addinfo/{{ photoid }}" method="POST">
+
+    <datalist id="Kaikki henkilot">
+        {% for nimi in kaikkiHenkilot %}
+            <option value="{{ nimi[0] }}">
+        {% endfor %}
+    </datalist>
+    <datalist id="Listan henkilot">
+        {% for nimi in henkilot %}
+            <option value="{{ nimi[0] }}">
+        {% endfor %}
+    </datalist>
+
+    <datalist id="Kaikki avainsanat">
+        {% for nimi in kaikkiAvainsanat %}
+            <option value="{{ nimi[0] }}">
+        {% endfor %}
+    </datalist>
+    <datalist id="Listan avainsanat">
+        {% for nimi in avainsanat %}
+            <option value="{{ nimi[0] }}">
+        {% endfor %}
+    </datalist>
+
+
     <p>Päivämäärä:
         <input type="date" name="kuvauspaiva" value="{{ paivamaara }}"></p>
+
     <p>Kellonaika:
         <input type="time" name="aika" value="{{ aika }}"></p>
+
     <p>Kuvaaja:
-        <input type="text" name="kuvaaja" value="{{ kuvaaja }}"></p>
+        <input list="Kaikki henkilot" name="kuvaaja" value="{{ kuvaaja }}">
         </p>
+
     <p>Kuvaus:
         <input type="text" name="tekstikuvaus" value="{{ tekstikuvaus }}"></p>
-    <p>Valokuvan henkilöt: {{ henkilot }}<br>
-    <a href="/addperson/{{ photoid }}">Muuta henkilöitä</a>
+
+    <p>Valokuvan henkilöt: {{ henkilostr }}<br>
+        <input list="Kaikki henkilot" name="lisaaHenkilo">
+        <input type="submit" value="Lisää henkilö"><br>
+        <input list="Listan henkilot" name="poistaHenkilo">
+        <input type="submit" value="Poista henkilö">
     </p>
+
+    <p>Valokuvan avainsanat: {{ avainsanastr }}<br>
+        <input list="Kaikki avainsanat" name="lisaaAvainsana">
+        <input type="submit" value="Lisää avainsana"><br>
+        <input list="Listan avainsanat" name="poistaAvainsana">
+        <input type="submit" value="Poista avainsana">
+    </p>
+    
     <input type="submit" value="Talenna tiedot">
 
 </form>
