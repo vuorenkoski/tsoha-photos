@@ -5,27 +5,21 @@
 {% if session.username %}
 
 <table>
-{% for photo in photos %}
-<tr>
-    <td>
-        <img src="/photos/photo{{ photo[0] }}_thmb.jpg">
-    </td>
-    <td>
-        Päivämäärä: {{ photo[1].strftime("%d.%m.%Y") }} <br>
-        Kuvaaja: {{ photo[3] }} <br>
-        Kuvaus: {{ photo[2] }} <br>
-    </td>
-    <td>
-        <a href="/addinfo/{{ photo[0] }}">Muokkaa tietoja</a> <br>
-        <a href="/photos/photo{{ photo[0] }}.jpg">Näytä kuva</a> <br>
-    </td>
-</tr>
-{% endfor %}
-
+<tr><td>
+    <a href="/view">Katsele ja hallinnoi omia kuvia</a>
+</td></tr>
+<tr><td>
+    <a href="/viewothers">Katsele muiden käyttäjien kuvia</a>
+</td></tr>
+<tr><td>
+    <a href="/upload">Lataa lisää kuvia</a>
+</td></tr>
+<tr><td>
+    <a href="/places">Hallinnoi paikkoja</a>
+</td></tr>
 </table>
 
-
-<p><a href="/upload">Lataa lisää kuvia</a></p>
+<p></p>
 {% else %}
 <p>Kirjaudu sisään <a href="/login">tästä</a></p>
 <p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>

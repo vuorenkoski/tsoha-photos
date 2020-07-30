@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from PIL import Image
 from datetime import datetime
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
@@ -18,13 +19,7 @@ USE_PSQL_STORAGE_FOR_JPG = True
 
 @app.route("/")
 def index():
-    if "userid" in session:
-        sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, nimi FROM photos_valokuvat LEFT JOIN photos_henkilot ON valokuvaaja_id=photos_henkilot.id WHERE kayttaja_id=:userid"
-        result = db.session.execute(sql, {"userid":session["userid"]})
-        photos = result.fetchall()
-        return render_template("index.html", photos=photos)
-    else:
-        return render_template("index.html")
+    return render_template("index.html")
 
 @app.route("/login",methods=["GET"])
 def login():
@@ -71,6 +66,15 @@ def signupdata():
     session["username"] = username
     return redirect("/")
 
+@app.route("/view", methods=["GET"])
+def view():
+    if "userid" in session:
+        sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka FROM photos_valokuvat LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE kayttaja_id=:userid"
+        kuvat = db.session.execute(sql, {"userid":session["userid"]}).fetchall()
+        return render_template("view.html", kuvat=kuvat)
+    else:
+        return render_template("view.html")
+
 @app.route("/upload", methods=["GET"])
 def upload_photo():
     return render_template("upload.html")
@@ -88,7 +92,7 @@ def upload_photodata():
     if date!="":
         date=date[0:4]+"-"+date[5:7]+"-"+date[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
     sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus) VALUES (:userid, :kuvausaika, NOW(), :tekstikuvaus) RETURNING id"
-    result=db.session.execute(sql, {"userid":session["userid"], "kuvausaika":date, "tekstikuvaus":"--"})
+    result=db.session.execute(sql, {"userid":session["userid"], "kuvausaika":date, "tekstikuvaus":""})
     id=result.fetchone()[0]
     db.session.commit()
 
@@ -102,7 +106,7 @@ def addinfo(id):
     sql = "SELECT kuvausaika, nimi, tekstikuvaus FROM photos_valokuvat LEFT JOIN photos_henkilot ON photos_valokuvat.valokuvaaja_id=photos_henkilot.id WHERE photos_valokuvat.id=:id"
     data = db.session.execute(sql, {"id":id}).fetchone()
 
-    # Haetaan valokuvien henkilot
+    # Haetaan valokuvien henkilot ja kaikki henkilöt
     sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
     henkilot = db.session.execute(sql, {"id":id}).fetchall()
     henkilostr = ", ".join(t[0] for t in henkilot)
@@ -111,7 +115,7 @@ def addinfo(id):
     sql = "SELECT nimi FROM photos_henkilot"
     kaikkiHenkilot = db.session.execute(sql)
 
-    # Haetaan valokuvien avainsanat
+    # Haetaan valokuvien avainsanat ja kaikki avainsanat
     sql = "SELECT avainsana FROM photos_avainsanat,photos_valokuvienavainsanat WHERE valokuva_id=:id AND photos_avainsanat.id=avainsana_id"
     avainsanat = db.session.execute(sql, {"id":id}).fetchall()
     avainsanastr = ", ".join(t[0] for t in avainsanat)
@@ -120,6 +124,14 @@ def addinfo(id):
     sql = "SELECT avainsana FROM photos_avainsanat"
     kaikkiAvainsanat = db.session.execute(sql)
 
+    # Haetaan paikan nimi ja kaikki paikat
+    sql = "SELECT paikka FROM photos_valokuvat LEFT JOIN photos_paikat ON photos_valokuvat.paikka_id=photos_paikat.id WHERE photos_valokuvat.id=:id"
+    paikka = db.session.execute(sql, {"id":id}).fetchone()[0]
+    if paikka==None:
+        paikka=""
+    sql = "SELECT paikka FROM photos_paikat"
+    kaikkiPaikat = db.session.execute(sql)
+
     if data[1]==None:
         kuvaaja=""
     else:
@@ -127,7 +139,7 @@ def addinfo(id):
 
     return render_template("addinfo.html", photoid=id, paivamaara=data[0].strftime("%Y-%m-%d"), aika=data[0].strftime("%H:%M"), 
         tekstikuvaus=data[2], kuvaaja=kuvaaja, henkilostr=henkilostr, henkilot=henkilot, kaikkiHenkilot=kaikkiHenkilot, 
-        avainsanastr=avainsanastr, avainsanat=avainsanat, kaikkiAvainsanat=kaikkiAvainsanat)
+        avainsanastr=avainsanastr, avainsanat=avainsanat, kaikkiAvainsanat=kaikkiAvainsanat, paikka=paikka, kaikkiPaikat=kaikkiPaikat)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfodata(id):
@@ -135,6 +147,7 @@ def addinfodata(id):
     kuvausaika = request.form["kuvauspaiva"] + " " + request.form["aika"]
     tekstikuvaus = request.form["tekstikuvaus"]
     kuvaajaid=add_person(request.form["kuvaaja"])
+    paikkaid=add_place(request.form["paikka"])
 
     # Henkilöiden lisääminen ja poistaminen
     if request.form["lisaaHenkilo"]!="":
@@ -170,31 +183,34 @@ def addinfodata(id):
             db.session.commit()
         poistu=False
 
-    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid WHERE id=:id"
-    db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus, "kuvaajaid":kuvaajaid})
+    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid, paikka_id=:paikkaid WHERE id=:id"
+    db.session.execute(sql, {"id":id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus, "kuvaajaid":kuvaajaid, "paikkaid":paikkaid})
     db.session.commit()
 
     if poistu:
-        return redirect("/")
+        return redirect("/view")
     else:
         return redirect("/addinfo/"+str(id))
 
 
 @app.route("/places", methods=["GET"])
 def places():
-    pass
-
-@app.route("/places", methods=["POST"])
-def places():
-    pass
+    sql = "SELECT id,paikka, maa, alue, kaupunki, wwwviite FROM photos_paikat"
+    paikat = db.session.execute(sql).fetchall()
+    return render_template("places.html", paikat=paikat)
 
 @app.route("/place/<int:id>", methods=["GET"])
 def placeinfo(id):
-    pass
+    sql = "SELECT paikka, kaupunki, maa, alue, wwwviite FROM photos_paikat WHERE id=:id"
+    data = db.session.execute(sql, {"id":id}).fetchone()
+    return render_template("place.html", paikkaid=id, paikka=data[0], kaupunki=data[1], maa=data[2], alue=data[3], wwwsivu=data[4])
 
 @app.route("/place/<int:id>", methods=["POST"])
 def placeinfodata(id):
-    pass
+    sql = "UPDATE photos_paikat SET kaupunki=:kaupunki, maa=:maa, alue=:alue, wwwviite=:wwwsivu WHERE id=:id"
+    db.session.execute(sql, {"id":id, "maa":request.form["maa"], "alue":request.form["alue"], "kaupunki":request.form["kaupunki"], "wwwsivu":request.form["wwwsivu"]})
+    db.session.commit()
+    return redirect("/places")
 
 @app.route("/photos/<tiedostonimi>")
 def show_photo(tiedostonimi):
@@ -225,7 +241,7 @@ def add_person(nimi):
         db.session.commit()
     return henkiloid[0]
 
-# Lisää avainsanan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
+# Lisää avainsanan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa avainsanan id numeron.
 def add_keyword(avainsana):
     if avainsana=="" or avainsana=="None":
         return None
@@ -236,6 +252,18 @@ def add_keyword(avainsana):
         avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
         db.session.commit()
     return avainsanaid[0]
+
+# Lisää paikan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa paikan id numeron.
+def add_place(paikka):
+    if paikka=="" or paikka=="None":
+        return None
+    sql = "SELECT id FROM photos_paikat WHERE LOWER(paikka)=LOWER(:paikka)"
+    paikkaid = db.session.execute(sql, {"paikka":paikka}).fetchone()
+    if paikkaid==None:
+        sql = "INSERT INTO photos_paikat (paikka, maa, alue, kaupunki, wwwviite) VALUES (:paikka, '', '', '', '') RETURNING id"
+        paikkaid = db.session.execute(sql, {"paikka":paikka}).fetchone()
+        db.session.commit()
+    return paikkaid[0]
 
 def save_photo(kuva, tiedostonimi):
     if USE_PSQL_STORAGE_FOR_JPG:

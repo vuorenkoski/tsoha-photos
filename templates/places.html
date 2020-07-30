@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}Hallinnoi paikkoja{% endblock %}
+{% block content %}
+
+{% if session.username %}
+<table>
+{% for paikka in paikat %}
+<tr>
+    <td>
+        <b>Paikka: {{ paikka[1] }} </b><br>
+        Kaupunki: {{ paikka[4] }} <br>
+    </td>
+    <td>
+        Maa: {{ paikka[2] }} <br>
+        Alue: {{ paikka[3] }} <br>
+    </td>
+    <td>
+        www-osoite: {{ paikka[5] }} <br>
+        <a href="/place/{{ paikka[0] }}">Muokkaa tietoja</a> <br>
+    </td>
+</tr>
+{% endfor %}
+</table>
+
+{% else %}
+<p>Kirjaudu sisään <a href="/login">tästä</a></p>
+<p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>
+{% endif %}
+
+{% endblock %}

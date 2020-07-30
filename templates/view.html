@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}Etusivu{% endblock %}
+{% block content %}
+
+{% if session.username %}
+
+<table>
+{% for kuva in kuvat %}
+<tr>
+    <td>
+        <img src="/photos/photo{{ kuva[0] }}_thmb.jpg">
+    </td>
+    <td>
+        Päivämäärä: {{ kuva[1].strftime("%d.%m.%Y") }} <br>
+        Paikka: {{ kuva[3] }} <br>
+        Kuvaus: {{ kuva[2] }} <br>
+    </td>
+    <td>
+        <a href="/addinfo/{{ kuva[0] }}">Muokkaa tietoja</a> <br>
+        <a href="/photos/photo{{ kuva[0] }}.jpg">Näytä kuva</a> <br>
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% else %}
+<p>Kirjaudu sisään <a href="/login">tästä</a></p>
+<p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>
+{% endif %}
+{% endblock %}

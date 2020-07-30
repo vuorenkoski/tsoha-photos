@@ -26,6 +26,11 @@
             <option value="{{ nimi[0] }}">
         {% endfor %}
     </datalist>
+    <datalist id="Kaikki paikat">
+        {% for paikka in kaikkiPaikat %}
+            <option value="{{ paikka[0] }}">
+        {% endfor %}
+    </datalist>
 
 
     <p>Päivämäärä:
@@ -54,6 +59,10 @@
         <input list="Listan avainsanat" name="poistaAvainsana">
         <input type="submit" value="Poista avainsana">
     </p>
+
+    <p>Paikka:
+        <input list="Kaikki paikat" name="paikka" value="{{ paikka }}">
+        </p>
     
     <input type="submit" value="Talenna tiedot">
 
