@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}Katsele paikan tietoja{% endblock %}
+
+{% block content %}
+{% if session.username %}
+<hr>
+<h3>{{ paikka }}</h3>
+
+<p>Kaupunki: {{ kaupunki }}</p>
+<p>Alue: {{ alue }}</p>
+<p>Maa: {{ maa }}</p>
+<p>WWW-sivu: <a href="{{ wwwsivu }}">{{ wwwsivu }}</a></p>
+
+<a href="/place/{{ paikkaid }}">Muokkaa</a>
+{% endif %}
+
+
+{% endblock %}

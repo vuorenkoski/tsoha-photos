@@ -6,7 +6,8 @@
 {% if session.username %}
 
 <form method=post enctype=multipart/form-data>
-  <input type=file name=photo>
+  <input type=file name=kuva>
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
   <input type=submit value=Lataa>
 </form>
 

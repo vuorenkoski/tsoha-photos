@@ -4,7 +4,7 @@
 {% block content %}
 {% if session.username %}
 
-<h2>{{ paikka }}</h2>
+<h3>{{ paikka }}</h3>
 
 <form action="/place/{{ paikkaid }}" method="POST">
 
@@ -19,6 +19,8 @@
     
     <p>www-sivu:
         <input type="url" name="wwwsivu" value="{{ wwwsivu }}"></p>
+        
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
         
     <input type="submit" value="Talenna tiedot">
 

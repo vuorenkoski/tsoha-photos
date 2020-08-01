@@ -2,8 +2,8 @@
 {% block title %}Muuta kuvan tietoja{% endblock %}
 
 {% block content %}
-<img src="/photos/photo{{ photoid }}.jpg" height="300">
-<form action="/addinfo/{{ photoid }}" method="POST">
+<img src="/photos/photo{{ valokuva_id }}.jpg" height="300">
+<form action="/addinfo/{{ valokuva_id }}" method="POST">
 
     <datalist id="Kaikki henkilot">
         {% for nimi in kaikkiHenkilot %}
@@ -81,6 +81,8 @@
 
     <p><label for="paikka"></label>Paikka</label>
         <input list="Kaikki paikat" name="paikka" value="{{ paikka }}"></p>
+    
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     
     <input type="submit" value="Talenna tiedot">
 
