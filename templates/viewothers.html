@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Omat valokuvat{% endblock %}
+{% block title %}Muiden käyttäjien valokuvat{% endblock %}
 {% block content %}
 
 {% if session.username %}
@@ -20,7 +20,7 @@
         Avainsanat: {{ kuva[2] }} <br>
     </td>
     <td>
-        <a href="/addinfo/{{ kuva[0][0] }}">Muokkaa tietoja</a> <br>
+        Käyttäjä: {{ kuva[0][5] }} <br>
         <a href="/photos/photo{{ kuva[0][0] }}.jpg">Näytä kuva</a> <br>
     </td>
 </tr>

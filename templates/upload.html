@@ -3,6 +3,8 @@
 
 {% block content %}
 
+{% if session.username %}
+
 <form method=post enctype=multipart/form-data>
   <input type=file name=photo>
   <input type=submit value=Lataa>
@@ -10,5 +12,6 @@
 
 {% if message %}
 <p><b>{{ message }}</b></p>
+{% endif %}
 {% endif %}
 {% endblock %}

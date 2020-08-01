@@ -1,7 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}Muuta paikan tietoja{% endblock %}
+{% block title %}Katsele ja muuta paikan tietoja{% endblock %}
 
 {% block content %}
+{% if session.username %}
 
 <h2>{{ paikka }}</h2>
 
@@ -22,6 +23,8 @@
     <input type="submit" value="Talenna tiedot">
 
 </form>
+
+{% endif %}
 
 
 {% endblock %}

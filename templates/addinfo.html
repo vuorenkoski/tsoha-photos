@@ -31,20 +31,32 @@
             <option value="{{ paikka[0] }}">
         {% endfor %}
     </datalist>
+    <datalist id="oikeudet">
+        {% for tunnus in oikeudet %}
+            <option value="{{ tunnus[0] }}">
+        {% endfor %}
+    </datalist>
+    <datalist id="kayttajat">
+        {% for tunnus in kayttajat %}
+            <option value="{{ tunnus[0] }}">
+        {% endfor %}
+    </datalist>
 
 
-    <p>Päivämäärä:
+    <p><label for="kuvauspaiva">Päivämäärä</label>
         <input type="date" name="kuvauspaiva" value="{{ paivamaara }}"></p>
 
-    <p>Kellonaika:
+    <p><label for="aika"></label>Kellonaika</label>
         <input type="time" name="aika" value="{{ aika }}"></p>
 
-    <p>Kuvaaja:
-        <input list="Kaikki henkilot" name="kuvaaja" value="{{ kuvaaja }}">
-        </p>
+    <p><label for="kuvaaja"></label>Kuvaaja</label>
+        <input list="Kaikki henkilot" name="kuvaaja" value="{{ kuvaaja }}"></p>
 
-    <p>Kuvaus:
+    <p><label for="kuvaus"></label>Kuvaus</label>
         <input type="text" name="tekstikuvaus" value="{{ tekstikuvaus }}"></p>
+
+    <p><label for="julkinen"></label>Julkinen</label>
+        <input type="checkbox" {{ julkinen }} name="julkinen" value="true"></p>
 
     <p>Valokuvan henkilöt: {{ henkilostr }}<br>
         <input list="Kaikki henkilot" name="lisaaHenkilo">
@@ -60,9 +72,15 @@
         <input type="submit" value="Poista avainsana">
     </p>
 
-    <p>Paikka:
-        <input list="Kaikki paikat" name="paikka" value="{{ paikka }}">
-        </p>
+    <p>Valokuvan katseluoikeudet: {{ oikeudetstr }}<br>
+        <input list="kayttajat" name="lisaaOikeus">
+        <input type="submit" value="Lisää oikeus"><br>
+        <input list="oikeudet" name="poistaOikeus">
+        <input type="submit" value="Poista oikeus">
+    </p>
+
+    <p><label for="paikka"></label>Paikka</label>
+        <input list="Kaikki paikat" name="paikka" value="{{ paikka }}"></p>
     
     <input type="submit" value="Talenna tiedot">
 
