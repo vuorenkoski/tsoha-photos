@@ -6,6 +6,21 @@ Aineopintojen harjoitustyö: Tietokantasovellus (loppukesä)
 
 Pavelun avulla käyttäjät voivat jakaa ja katsella valokuvia. Valokuviin voi liittää erinäisiä tietoja kuten niiden ottajia, paikkoja, henkilöitä ja ottamispäivämäärä.
 
+## Sovelluksen nykytilanne
+
+Sovellukseen on toteuttu kaikki päätoiminnallisuudet. Paljon on vielä yksityiskohtia hiottavana.
+
+## Sovelluksen testaaminen
+
+### Heroku
+
+Herokussa voi testata osoitteessa: https://tsoha-photos.herokuapp.com/. Ongelmana tässä on se, että jpg kuvat tallennetaan sql taulukkoon, joka jostain syystä tyhjenee lyhyen ajan päästä. Sovellus toimii muuten herokussa ok, mutta kovat sis poistuvat jonkun ajan kuluttua.
+
+### Omalla palvelimella
+
+Sovelusta voi testata myös omalta palvelimeltani: https://www.vuorenkoski.fi:7443/
+
+
 ## Tietokantataulukot
 
 Kayttajat
