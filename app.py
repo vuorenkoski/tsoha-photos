@@ -1,7 +1,5 @@
 from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
 from os import getenv, path, urandom
-from flask_sqlalchemy import SQLAlchemy
-
 from re import compile
 
 app = Flask(__name__)
@@ -144,7 +142,6 @@ def addinfodata(id):
         return redirect("/view")
     else:
         return redirect("/addinfo/"+str(id))
-
 
 @app.route("/places", methods=["GET"])
 def placelist():

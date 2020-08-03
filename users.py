@@ -17,7 +17,6 @@ def checkPermissionToView(session, valokuva_id):
             return True
         sql = "SELECT kayttaja_id FROM photos_oikeudet WHERE valokuva_id=:id"
         data = db.session.execute(sql, {"id":valokuva_id}).fetchall()
-        print(data)
         if (session["userid"],) in data:
             return True
     return False

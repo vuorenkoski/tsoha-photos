@@ -12,8 +12,9 @@ app.config["MAX_CONTENT_PATH"] = 5000000000
 
 def getUsersPhotos(kayttaja_id):
     sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id FROM photos_valokuvat " \
-    "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE kayttaja_id=:kayttaja_id"
-    return db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
+        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE kayttaja_id=:kayttaja_id"
+    result = db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
+    return sorted(result, key=lambda tup: tup[1])
 
 def getOthersPhotos(kayttaja_id):
     sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
@@ -21,7 +22,8 @@ def getOthersPhotos(kayttaja_id):
         "WHERE photos_valokuvat.id IN (SELECT photos_valokuvat.id " \
         "FROM photos_valokuvat LEFT JOIN photos_oikeudet ON valokuva_id=photos_valokuvat.id " \
         "WHERE photos_oikeudet.kayttaja_id=:kayttaja_id OR julkinen=true AND photos_valokuvat.kayttaja_id!=:kayttaja_id)"
-    return db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
+    result = db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
+    return sorted(result, key=lambda tup: tup[1])
 
 def savePhoto(kayttaja_id, kuva):
     image = Image.open(kuva)

@@ -10,11 +10,30 @@ Pavelun avulla käyttäjät voivat jakaa ja katsella valokuvia. Valokuviin voi l
 
 Sovellukseen on toteuttu kaikki päätoiminnallisuudet. Paljon on vielä yksityiskohtia hiottavana.
 
+Toteutetut toiminnallisuudet:
+
+- tunnuksen luominen
+- sisään- ja uloskirjautuminen
+- valokuvan tallentaminen
+- omien kuvien katselu
+- muiden jakamien kuvien katselu
+- kuvan tietojen päivittäminen
+- paikkojen tietojen päivittäminen
+
+Sovelluksesta vielä puutuu:
+
+- Kuvien selaamiseen toiminnallisuus, jolla voi rajata listalle tulevat kuvat päivämäärän, paikan, avainsanojen ja/tai kuvassa esiintyvän henkilön mukaan.
+- Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja ja muita tietoja
+- Ulkoasun virittäminen paremmaksi
+
 ## Sovelluksen testaaminen
+
+Sovellukseen voi testaamista varten voi luoda oman tunnuksen.
+
 
 ### Heroku
 
-Herokussa voi testata osoitteessa: https://tsoha-photos.herokuapp.com/. Ongelmana tässä on se, että jpg kuvat tallennetaan sql taulukkoon, joka jostain syystä tyhjenee lyhyen ajan päästä. Sovellus toimii muuten herokussa ok, mutta kovat sis poistuvat jonkun ajan kuluttua.
+Herokussa voi testata osoitteessa: https://tsoha-photos.herokuapp.com/. Ongelmana tässä on se, että jpg kuvat tallennetaan sql taulukkoon, joka jostain syystä tyhjenee lyhyen ajan päästä. Sovellus toimii muuten herokussa ok, mutta kuvat sis poistuvat jonkun ajan kuluttua.
 
 ### Omalla palvelimella
 
@@ -40,6 +59,7 @@ Valokuvat
 - paikka_id (INT)
 - tekstikuvaus (TEXT)
 - aikaleima (TIMESTAMP)
+- julkinen (BOOLEAN)
 
 Henkilöt
 
