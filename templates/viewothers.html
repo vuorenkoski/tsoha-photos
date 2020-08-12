@@ -3,78 +3,78 @@
 {% block content %}
 
 {% if session.username %}
-<form action="/viewothers/{{ valokuva_id }}" method="POST">
+<form action="/viewothers" method="POST" id="form">
+    <table>
+    <tr>
+        <td>
+            Päivämäärä: 
+            <input type="date" name="startdate" value="{{ startdate }}">-
+            <input type="date" name="enddate" value="{{ enddate }}">
+        </td>
+        <td>
+            <label for="place">Paikka:</label>
+            <select name="place" form="form">
+                <option value=""></option>
+                {% for place in allPlaces %}
+                    <option value="{{ place[0] }}">{{place[0] }}</option>
+                {% endfor %}
+                <option value="{{ place }}" selected hidden>{{ place }}</option>
+            </select>
+        </td>
+        <td>
+            <label for="person">Henkilö:</label>
+            <select name="person" form="form">
+                <option value=""></option>
+                {% for person in allPersons %}
+                    <option value="{{ person[0] }}">{{ person[0] }}</option>
+                {% endfor %}
+                <option value="{{ person }}" selected hidden>{{ person }}</option>
+            </select>
+        </td>
 
-    <datalist id="Kaikki henkilot">
-        {% for nimi in kaikkiHenkilot %}
-            <option value="{{ nimi[0] }}">
-        {% endfor %}
-    </datalist>
-    <datalist id="Kaikki avainsanat">
-        {% for nimi in kaikkiAvainsanat %}
-            <option value="{{ nimi[0] }}">
-        {% endfor %}
-    </datalist>
-    <datalist id="Kaikki paikat">
-        {% for paikka in kaikkiPaikat %}
-            <option value="{{ paikka[0] }}">
-        {% endfor %}
-    </datalist>
-    <datalist id="kayttajat">
-        {% for tunnus in kayttajat %}
-            <option value="{{ tunnus[0] }}">
-        {% endfor %}
-    </datalist>
-
-<table>
-<tr>
-    <td>
-        Päivämäärä: 
-        <input type="date" name="alku" value="{{ alku }}">-
-        <input type="date" name="loppu" value="{{ loppu }}">
-    </td>
-    <td>
-        Paikka:
-        <input list="Kaikki paikat" name="paikka" value="{{ paikka }}">
-    </td>
-    <td>
-        Henkilö:
-        <input list="Kaikki henkilot" name="henkilo" value="{{ henkilo }}">
-    </td>
-    <td>
-        Avainsana:
-        <input list="Kaikki avainsanat" name="avainsana" value="{{ avainsana }}">
-    </td>
-    <td>
-        Käyttäjä:
-        <input list="kayttajat" name="kayttaja" value="{{ kayttaja }}">
-    </td>
-</tr>
-</table>
+        <td>
+            <label for="keyword">Avainsana:</label>
+            <select name="keyword" form="form">
+                <option value=""></option>
+                {% for keyword in allKeywords %}
+                    <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
+                {% endfor %}
+                <option value="{{ keyword }}" selected hidden>{{ keyword }}</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <input type=submit value=Päivitä>
+    </tr>
+    </table>
+</form>
 
 <table>
-{% for kuva in kuvat %}
-<tr>
-    <td>
-        <img src="/photos/photo{{ kuva[0][0] }}_thmb.jpg">
-    </td>
-    <td>
-        Päivämäärä: {{ kuva[0][1].strftime("%d.%m.%Y") }} <br>
-        Paikka: <a href="/placeinfo/{{ kuva[0][4] }}">{{ kuva[0][3] }}</a><br>
-        Kuvaus: {{ kuva[0][2] }} <br>
-    </td>
-    <td>
-        Henkilöt: {{ kuva[1] }} <br>
-        Avainsanat: {{ kuva[2] }} <br>
-    </td>
-    <td>
-        Käyttäjä: {{ kuva[0][5] }} <br>
-        <a href="/photos/photo{{ kuva[0][0] }}.jpg">Näytä kuva</a> <br>
-    </td>
-</tr>
-{% endfor %}
-
-</table>
-
-{% endif %}
-{% endblock %}
+    {% for photo in photos %}
+    <tr>
+        <td>
+            <img src="/photos/photo{{ photo[0][0] }}_thmb.jpg">
+        </td>
+        <td>
+            {% if photo[0][1] %}
+                Päivämäärä: {{ photo[0][1].strftime("%d.%m.%Y") }} <br>
+            {% endif %}
+            {% if photo[0][3] %}
+                Paikka: <a href="/placeinfo/{{ photo[0][4] }}">{{ photo[0][3] }}</a><br>
+            {% endif %}
+            Kuvaus: {{ photo[0][2] }} <br>
+        </td>
+        <td>
+            Henkilöt: {{ photo[1] }} <br>
+            Avainsanat: {{ photo[2] }} <br>
+        </td>
+        <td>
+            <a href="/photos/photo{{ photo[0][0] }}.jpg">Näytä kuva</a> <br>
+        </td>
+    </tr>
+    {% endfor %}
+    
+    </table>
+    
+    {% endif %}
+    {% endblock %}

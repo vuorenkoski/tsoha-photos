@@ -4,21 +4,21 @@
 {% block content %}
 {% if session.username %}
 
-<h3>{{ paikka }}</h3>
+<h3>{{ place }}</h3>
 
-<form action="/place/{{ paikkaid }}" method="POST">
+<form action="/place/{{ place_id }}" method="POST">
 
     <p>Kaupunki:
-        <input type="text" name="kaupunki" value="{{ kaupunki }}"></p>
+        <input type="text" name="city" value="{{ city }}"></p>
 
     <p>Alue: 
-        <input type="text" name="alue" value="{{ alue }}"></p>
+        <input type="text" name="region" value="{{ region }}"></p>
 
     <p>Maa:
-        <input type="text" name="maa" value="{{ maa }}"></p>
+        <input type="text" name="country" value="{{ country }}"></p>
     
     <p>www-sivu:
-        <input type="url" name="wwwsivu" value="{{ wwwsivu }}"></p>
+        <input type="url" name="wwwpage" value="{{ wwwpage }}"></p>
         
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
         

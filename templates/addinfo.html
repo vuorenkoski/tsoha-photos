@@ -2,87 +2,87 @@
 {% block title %}Muuta kuvan tietoja{% endblock %}
 
 {% block content %}
-<img src="/photos/photo{{ valokuva_id }}.jpg" height="300">
-<form action="/addinfo/{{ valokuva_id }}" method="POST">
+<img src="/photos/photo{{ photo_id }}.jpg" height="300">
+<form action="/addinfo/{{ photo_id }}" method="POST">
 
-    <datalist id="Kaikki henkilot">
-        {% for nimi in kaikkiHenkilot %}
-            <option value="{{ nimi[0] }}">
+    <datalist id="All persons">
+        {% for person in allPersons %}
+            <option value="{{ person[0] }}">
         {% endfor %}
     </datalist>
-    <datalist id="Listan henkilot">
-        {% for nimi in henkilot %}
-            <option value="{{ nimi[0] }}">
+    <datalist id="Photo persons">
+        {% for person in persons %}
+            <option value="{{ person[0] }}">
         {% endfor %}
     </datalist>
-    <datalist id="Kaikki avainsanat">
-        {% for nimi in kaikkiAvainsanat %}
-            <option value="{{ nimi[0] }}">
+    <datalist id="All keywords">
+        {% for keyword in allKeywords %}
+            <option value="{{ keyword[0] }}">
         {% endfor %}
     </datalist>
-    <datalist id="Listan avainsanat">
-        {% for nimi in avainsanat %}
-            <option value="{{ nimi[0] }}">
+    <datalist id="Photo keywords">
+        {% for keyword in keywords %}
+            <option value="{{ keyword[0] }}">
         {% endfor %}
     </datalist>
-    <datalist id="Kaikki paikat">
-        {% for paikka in kaikkiPaikat %}
-            <option value="{{ paikka[0] }}">
+    <datalist id="All places">
+        {% for place in allPlaces %}
+            <option value="{{ place[0] }}">
         {% endfor %}
     </datalist>
-    <datalist id="oikeudet">
-        {% for tunnus in oikeudet %}
-            <option value="{{ tunnus[0] }}">
+    <datalist id="Photo permissions">
+        {% for user in permissions %}
+            <option value="{{ user[0] }}">
         {% endfor %}
     </datalist>
-    <datalist id="kayttajat">
-        {% for tunnus in kayttajat %}
-            <option value="{{ tunnus[0] }}">
+    <datalist id="All users">
+        {% for user in users %}
+            <option value="{{ user[0] }}">
         {% endfor %}
     </datalist>
 
 
-    <p><label for="kuvauspaiva">Päivämäärä</label>
-        <input type="date" name="kuvauspaiva" value="{{ paivamaara }}"></p>
+    <p><label for="date">Päivämäärä</label>
+        <input type="date" name="date" value="{{ date }}"></p>
 
-    <p><label for="aika"></label>Kellonaika</label>
-        <input type="time" name="aika" value="{{ aika }}"></p>
+    <p><label for="time"></label>Kellonaika</label>
+        <input type="time" name="time" value="{{ time }}"></p>
 
-    <p><label for="kuvaaja"></label>Kuvaaja</label>
-        <input list="Kaikki henkilot" name="kuvaaja" value="{{ kuvaaja }}"></p>
+    <p><label for="photographer"></label>Kuvaaja</label>
+        <input list="All persons" name="photographer" value="{{ photographer }}"></p>
 
-    <p><label for="kuvaus"></label>Kuvaus</label>
-        <input type="text" name="tekstikuvaus" value="{{ tekstikuvaus }}"></p>
+    <p><label for="description"></label>Kuvaus</label>
+        <input type="text" name="description" value="{{ description }}"></p>
 
-    <p><label for="julkinen"></label>Julkinen</label>
-        <input type="checkbox" {{ julkinen }} name="julkinen" value="true"></p>
+    <p><label for="public"></label>Julkinen</label>
+        <input type="checkbox" {{ public }} name="public" value="true"></p>
 
-    <p>Valokuvan henkilöt: {{ henkilostr }}<br>
-        <input list="Kaikki henkilot" name="lisaaHenkilo">
+    <p>Valokuvan henkilöt: {{ personstr }}<br>
+        <input list="All persons" name="addPerson">
         <input type="submit" value="Lisää henkilö"><br>
-        <input list="Listan henkilot" name="poistaHenkilo">
+        <input list="Photo persons" name="removePerson">
         <input type="submit" value="Poista henkilö">
     </p>
 
-    <p>Valokuvan avainsanat: {{ avainsanastr }}<br>
-        <input list="Kaikki avainsanat" name="lisaaAvainsana">
+    <p>Valokuvan avainsanat: {{ keywordstr }}<br>
+        <input list="All keywords" name="addKeyword">
         <input type="submit" value="Lisää avainsana"><br>
-        <input list="Listan avainsanat" name="poistaAvainsana">
+        <input list="Photo keywords" name="removeKeyword">
         <input type="submit" value="Poista avainsana">
     </p>
 
-    <p>Valokuvan katseluoikeudet: {{ oikeudetstr }}<br>
-        <input list="kayttajat" name="lisaaOikeus">
+    <p>Valokuvan katseluoikeudet: {{ permissionstr }}<br>
+        <input list="All users" name="addPermission">
         <input type="submit" value="Lisää oikeus"><br>
-        <input list="oikeudet" name="poistaOikeus">
+        <input list="Photo permissions" name="removePermission">
         <input type="submit" value="Poista oikeus">
     </p>
 
-    <p><label for="paikka"></label>Paikka</label>
-        <input list="Kaikki paikat" name="paikka" value="{{ paikka }}"></p>
+    <p><label for="place"></label>Paikka</label>
+        <input list="All places" name="place" value="{{ place }}"></p>
     
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-    <input type="hidden" name="edellinenSivu" value="{{ edellinenSivu }}">
+    <input type="hidden" name="previousPage" value="{{ previousPage }}">
 
     <input type="submit" value="Talenna tiedot">
 

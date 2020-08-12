@@ -6,37 +6,37 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 db = SQLAlchemy(app)
 
 # Lisää henkilön tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
-def add_person(nimi):
-    if nimi=="" or nimi=="None":
+def add_person_todb(name):
+    if name=="" or name=="None":
         return None
-    sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:nimi)"
-    henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
-    if henkiloid==None:
-        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:nimi,0) RETURNING id"
-        henkiloid = db.session.execute(sql, {"nimi":nimi}).fetchone()
+    sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:name)"
+    person_id = db.session.execute(sql, {"name":name}).fetchone()
+    if person_id==None:
+        sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:name,0) RETURNING id"
+        person_id = db.session.execute(sql, {"name":name}).fetchone()
         db.session.commit()
-    return henkiloid[0]
+    return person_id[0]
 
 # Lisää avainsanan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa avainsanan id numeron.
-def add_keyword(avainsana):
-    if avainsana=="" or avainsana=="None":
+def add_keyword_todb(keyword):
+    if keyword=="" or keyword=="None":
         return None
-    sql = "SELECT id FROM photos_avainsanat WHERE LOWER(avainsana)=LOWER(:avainsana)"
-    avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
-    if avainsanaid==None:
-        sql = "INSERT INTO photos_avainsanat (avainsana) VALUES (:avainsana) RETURNING id"
-        avainsanaid = db.session.execute(sql, {"avainsana":avainsana}).fetchone()
+    sql = "SELECT id FROM photos_avainsanat WHERE LOWER(avainsana)=LOWER(:keyword)"
+    keyword_id = db.session.execute(sql, {"keyword":keyword}).fetchone()
+    if keyword_id==None:
+        sql = "INSERT INTO photos_avainsanat (avainsana) VALUES (:keyword) RETURNING id"
+        keyword_id = db.session.execute(sql, {"keyword":keyword}).fetchone()
         db.session.commit()
-    return avainsanaid[0]
+    return keyword_id[0]
 
-def getAllPersons():
+def get_all_persons():
     sql = "SELECT nimi FROM photos_henkilot"
     return db.session.execute(sql).fetchall()
 
-def getAllKeywords():
+def get_all_keywords():
     sql = "SELECT avainsana FROM photos_avainsanat"
     return db.session.execute(sql).fetchall()
 
-def getAllUsers():
+def get_all_users():
     sql = "SELECT tunnus FROM photos_kayttajat"
     return db.session.execute(sql).fetchall()

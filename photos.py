@@ -1,5 +1,5 @@
 from app import app
-from db import db, add_person, add_keyword
+from db import db, add_person_todb, add_keyword_todb
 from io import BytesIO
 from PIL import Image
 from flask import make_response
@@ -10,173 +10,176 @@ USE_PSQL_STORAGE_FOR_JPG = True
 app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 
-def getUsersPhotos(kayttaja_id, f = None):
-    arvot = dict({"kayttaja_id":kayttaja_id})
-    filtterit = ["kayttaja_id=:kayttaja_id"]
+def get_users_photos(user_id, f = None):
+    values = dict({"user_id":user_id})
+    filters = ["kayttaja_id=:user_id"]
     if f!=None:
-        if f["alku"]!="":
-            arvot["alku"]=f["alku"]
-            filtterit.append("kuvausaika>=:alku")
-        if f["loppu"]!="":
-            arvot["loppu"]=f["loppu"]+" 23:59"
-            filtterit.append("kuvausaika<=:loppu")
-        if f["paikka"]!="":
-            sql = "SELECT id FROM photos_paikat WHERE paikka=:paikka"
-            result = db.session.execute(sql, {"paikka":f["paikka"]}).fetchone()
+        if f["startdate"]!="":
+            values["startdate"]=f["startdate"]
+            filters.append("kuvausaika>=:startdate")
+        if f["enddate"]!="":
+            values["enddate"]=f["enddate"]+" 23:59"
+            filters.append("kuvausaika<=:enddate")
+        if f["place"]!="":
+            sql = "SELECT id FROM photos_paikat WHERE paikka=:place"
+            result = db.session.execute(sql, {"place":f["place"]}).fetchone()
             if result!=None:
-                arvot["paikka_id"]=result[0]
-                filtterit.append("paikka_id=:paikka_id")
-        if f["henkilo"]!="":
-            sql = "SELECT id FROM photos_henkilot WHERE nimi=:nimi"
-            result = db.session.execute(sql, {"nimi":f["henkilo"]}).fetchone()
+                values["place_id"]=result[0]
+                filters.append("paikka_id=:place_id")
+        if f["person"]!="":
+            sql = "SELECT id FROM photos_henkilot WHERE nimi=:person"
+            result = db.session.execute(sql, {"person":f["person"]}).fetchone()
             if result!=None:
-                arvot["henkilo_id"]=result[0]
-                filtterit.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienhenkilot WHERE henkilo_id=:henkilo_id)")
-        if f["avainsana"]!="":
-            sql = "SELECT id FROM photos_avainsanat WHERE avainsana=:avainsana"
-            result = db.session.execute(sql, {"avainsana":f["avainsana"]}).fetchone()
+                values["person_id"]=result[0]
+                filters.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id)")
+        if f["keyword"]!="":
+            sql = "SELECT id FROM photos_avainsanat WHERE avainsana=:keyword"
+            result = db.session.execute(sql, {"keyword":f["keyword"]}).fetchone()
             if result!=None:
-                arvot["avainsana_id"]=result[0]
-                filtterit.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienavainsanat WHERE avainsana_id=:avainsana_id)")
+                values["keyword_id"]=result[0]
+                filters.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienavainsanat WHERE avainsana_id=:keyword_id)")
 
     sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id FROM photos_valokuvat " \
-        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE " + " AND ".join(filtterit)
-    result = db.session.execute(sql, arvot).fetchall()
-    return sorted(result, key=lambda tup: tup[1])
+        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE " + " AND ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
+    result = db.session.execute(sql, values).fetchall()
+    return result
 
-def getOthersPhotos(kayttaja_id):
+def get_others_photos(user_id):
     sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
         "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
         "WHERE photos_valokuvat.id IN (SELECT photos_valokuvat.id " \
         "FROM photos_valokuvat LEFT JOIN photos_oikeudet ON valokuva_id=photos_valokuvat.id " \
-        "WHERE photos_oikeudet.kayttaja_id=:kayttaja_id OR julkinen=true AND photos_valokuvat.kayttaja_id!=:kayttaja_id)"
-    result = db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
-    return sorted(result, key=lambda tup: tup[1])
+        "WHERE photos_oikeudet.kayttaja_id=:user_id OR julkinen=true AND photos_valokuvat.kayttaja_id!=:user_id)  ORDER BY kuvausaika ASC NULLS FIRST"
+    result = db.session.execute(sql, {"user_id":user_id}).fetchall()
+    return result
 
-def savePhoto(kayttaja_id, kuva, paikka_id, valokuvaaja_id):
-    image = Image.open(kuva)
+def save_photo(user_id, photo, place_id, photographer_id):
+    image = Image.open(photo)
     image.thumbnail(PHOTO_SIZE)
-    paivays=image._getexif()[36867]
-    if 36867 in image._getexif():
-        paivays=image._getexif()[36867]
-        paivays=paivays[0:4]+"-"+paivays[5:7]+"-"+paivays[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
+    if image._getexif()!=None and (36867 in image._getexif()):
+        datetime=image._getexif()[36867]
+        datetime=datetime[0:4]+"-"+datetime[5:7]+"-"+datetime[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
     else:
-        paivays=None
+        datetime=None
     sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus, julkinen, paikka_id, valokuvaaja_id) " \
-        "VALUES (:kayttaja_id, :paivays, NOW(), :tekstikuvaus, false, :paikka_id, :valokuvaaja_id) RETURNING id"
-    result=db.session.execute(sql, {"kayttaja_id":kayttaja_id, "paivays":paivays, "tekstikuvaus":"", "paikka_id":paikka_id, "valokuvaaja_id":valokuvaaja_id})
+        "VALUES (:user_id, :datetime, NOW(), :description, false, :place_id, :photographer_id) RETURNING id"
+    result=db.session.execute(sql, {"user_id":user_id, "datetime":datetime, "description":"", "place_id":place_id, "photographer_id":photographer_id})
     id=result.fetchone()[0]
     db.session.commit()
 
-    save_photo(image, "photo"+str(id)+".jpg")
+    save_image(image, "photo"+str(id)+".jpg")
     image.thumbnail(PHOTO_THUMB_SIZE)
-    save_photo(image, "photo"+str(id)+"_thmb.jpg")
+    save_image(image, "photo"+str(id)+"_thmb.jpg")
     return id
 
-def save_photo(kuva, tiedostonimi):
+def save_image(image, filename):
     if USE_PSQL_STORAGE_FOR_JPG:
         f=BytesIO()
-        kuva.save(f, format="jpeg")
-        sql = "INSERT INTO photos_jpgkuva (tiedostonimi, kuva) VALUES (:tiedostonimi, :kuva)"
-        db.session.execute(sql, {"tiedostonimi":tiedostonimi, "kuva":f.getvalue()})
+        image.save(f, format="jpeg")
+        sql = "INSERT INTO photos_jpgkuva (tiedostonimi, kuva) VALUES (:filename, :image)"
+        db.session.execute(sql, {"filename":filename, "image":f.getvalue()})
         db.session.commit()
     else:
-        kuva.save(path.join(app.config['UPLOAD_FOLDER'], tiedostonimi))
+        image.save(path.join(app.config['UPLOAD_FOLDER'], tiedostonimi))
 
-def getAttributes(valokuva_id):
+def get_attributes(photo_id):
     sql = "SELECT kuvausaika, nimi, tekstikuvaus, julkinen FROM photos_valokuvat " \
-        "LEFT JOIN photos_henkilot ON photos_valokuvat.valokuvaaja_id=photos_henkilot.id WHERE photos_valokuvat.id=:valokuva_id"
-    return db.session.execute(sql, {"valokuva_id":valokuva_id}).fetchone()
+        "LEFT JOIN photos_henkilot ON photos_valokuvat.valokuvaaja_id=photos_henkilot.id WHERE photos_valokuvat.id=:photo_id"
+    return db.session.execute(sql, {"photo_id":photo_id}).fetchone()
 
 # Palauttaa valokuvassa esiintyvät henkilöt
-def getPersons(valokuva_id):
+def get_persons(photo_id):
     sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
-    henkilot = db.session.execute(sql, {"id":valokuva_id}).fetchall()
-    henkilostr = ", ".join(t[0] for t in henkilot)
-    if henkilostr=="":
-        henkilostr="--"
-    return (henkilostr,henkilot)
+    persons = db.session.execute(sql, {"id":photo_id}).fetchall()
+    personstr = ", ".join(t[0] for t in persons)
+    if personstr=="":
+        personstr = "--"
+    return (personstr,persons)
 
 # Palauttaa valokuvan avainsanat
-def getKeywords(valokuva_id):
+def get_keywords(photo_id):
     sql = "SELECT avainsana FROM photos_avainsanat,photos_valokuvienavainsanat WHERE valokuva_id=:id AND photos_avainsanat.id=avainsana_id"
-    avainsanat = db.session.execute(sql, {"id":valokuva_id}).fetchall()
-    avainsanastr = ", ".join(t[0] for t in avainsanat)
-    if avainsanastr=="":
-        avainsanastr="--"
-    return (avainsanastr,avainsanat)
+    keywords = db.session.execute(sql, {"id":photo_id}).fetchall()
+    keywordstr = ", ".join(t[0] for t in keywords)
+    if keywordstr=="":
+        keywordstr = "--"
+    return (keywordstr,keywords)
 
 # Palauttaa valokuvan oikeudet
-def getPermissions(valokuva_id):
+def get_permissions(photo_id):
     sql = "SELECT tunnus FROM photos_oikeudet,photos_kayttajat WHERE valokuva_id=:id AND photos_kayttajat.id=kayttaja_id"
-    oikeudet = db.session.execute(sql, {"id":valokuva_id}).fetchall()
-    oikeudetstr = ", ".join(t[0] for t in oikeudet)
-    if oikeudetstr=="":
-        oikeudetstr="--"
-    return (oikeudetstr,oikeudet)
+    permissions = db.session.execute(sql, {"id":photo_id}).fetchall()
+    permissionstr = ", ".join(t[0] for t in permissions)
+    if permissionstr=="":
+        permissionstr = "--"
+    return (permissionstr,permissions)
 
-def getImage(tiedostonimi):
+def get_image(filename):
     if USE_PSQL_STORAGE_FOR_JPG:
-        sql = "SELECT kuva FROM photos_jpgkuva WHERE tiedostonimi=:tiedostonimi"
-        kuva = db.session.execute(sql, {"tiedostonimi":tiedostonimi}).fetchone()[0]
-        response = make_response(bytes(kuva))
+        sql = "SELECT kuva FROM photos_jpgkuva WHERE tiedostonimi=:filename"
+        image = db.session.execute(sql, {"filename":filename}).fetchone()[0]
+        response = make_response(bytes(image))
         response.headers.set("Content-Type", "image/jpeg")
         return response
     else:
-        return send_from_directory(app.config["UPLOAD_FOLDER"], tiedostonimi)
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
-def getPlace(valokuva_id):
-    sql = "SELECT paikka FROM photos_valokuvat LEFT JOIN photos_paikat ON photos_valokuvat.paikka_id=photos_paikat.id WHERE photos_valokuvat.id=:valokuva_id"
-    paikka = db.session.execute(sql, {"valokuva_id":valokuva_id}).fetchone()[0]
+def get_place(photo_id):
+    sql = "SELECT paikka FROM photos_valokuvat LEFT JOIN photos_paikat ON photos_valokuvat.paikka_id=photos_paikat.id WHERE photos_valokuvat.id=:photo_id"
+    paikka = db.session.execute(sql, {"photo_id":photo_id}).fetchone()[0]
     if paikka==None:
         paikka=""
     return paikka
 
-def addPerson(valokuva_id, henkilo):
-    hid = add_person(henkilo)
-    sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:hid AND valokuva_id=:vid"
-    if db.session.execute(sql, {"hid":hid, "vid":valokuva_id}).fetchone()[0]==0:
-        db.session.execute("INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:hid, :vid)", {"hid":hid, "vid":valokuva_id})
+def add_person(photo_id, person):
+    person_id = add_person_todb(person)
+    sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id AND valokuva_id=:photo_id"
+    if db.session.execute(sql, {"person_id":person_id, "photo_id":photo_id}).fetchone()[0]==0:
+        sql = "INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:person_id, :photo_id)"
+        db.session.execute(sql, {"person_id":person_id, "photo_id":photo_id})
         db.session.commit()
 
-def removePerson(valokuva_id, henkilo):
-    sql = "SELECT photos_valokuvienhenkilot.id FROM photos_valokuvienhenkilot, photos_henkilot WHERE henkilo_id=photos_henkilot.id AND nimi=:nimi AND valokuva_id=:vid"
-    linkid = db.session.execute(sql, {"nimi":henkilo, "vid":valokuva_id}).fetchone()
+def remove_person(photo_id, person):
+    sql = "SELECT photos_valokuvienhenkilot.id FROM photos_valokuvienhenkilot, photos_henkilot " \
+        "WHERE henkilo_id=photos_henkilot.id AND nimi=:person AND valokuva_id=:photo_id"
+    linkid = db.session.execute(sql, {"person":person, "photo_id":photo_id}).fetchone()
     if linkid != None:
         db.session.execute("DELETE FROM photos_valokuvienhenkilot WHERE id=:id", {"id":linkid[0]})
         db.session.commit()
 
-def addKeyword(valokuva_id, avainsana):
-    aid = add_keyword(avainsana)
-    sql = "SELECT COUNT(*) FROM photos_valokuvienavainsanat WHERE avainsana_id=:aid AND valokuva_id=:vid"
-    if db.session.execute(sql, {"aid":aid, "vid":valokuva_id}).fetchone()[0]==0:
-        db.session.execute("INSERT INTO photos_valokuvienavainsanat (avainsana_id, valokuva_id) VALUES (:aid, :vid)", {"aid":aid, "vid":valokuva_id})
+def add_keyword(photo_id, keyword):
+    keyword_id = add_keyword_todb(keyword)
+    sql = "SELECT COUNT(*) FROM photos_valokuvienavainsanat WHERE avainsana_id=:keyword_id AND valokuva_id=:photo_id"
+    if db.session.execute(sql, {"keyword_id":keyword_id, "photo_id":photo_id}).fetchone()[0]==0:
+        sql = "INSERT INTO photos_valokuvienavainsanat (avainsana_id, valokuva_id) VALUES (:keyword_id, :photo_id)"
+        db.session.execute(sql, {"keyword_id":keyword_id, "photo_id":photo_id})
         db.session.commit()
 
-def removeKeyword(valokuva_id, avainsana):
-    sql = "SELECT photos_valokuvienavainsanat.id FROM photos_valokuvienavainsanat, photos_avainsanat WHERE avainsana_id=photos_avainsanat.id AND avainsana=:avainsana AND valokuva_id=:vid"
-    linkid = db.session.execute(sql, {"avainsana":avainsana, "vid":valokuva_id}).fetchone()
+def remove_keyword(photo_id, keyword):
+    sql = "SELECT photos_valokuvienavainsanat.id FROM photos_valokuvienavainsanat, photos_avainsanat " \
+        "WHERE avainsana_id=photos_avainsanat.id AND avainsana=:keyword AND valokuva_id=:photo_id"
+    linkid = db.session.execute(sql, {"keyword":keyword, "photo_id":photo_id}).fetchone()
     if linkid != None:
         db.session.execute("DELETE FROM photos_valokuvienavainsanat WHERE id=:id", {"id":linkid[0]})
         db.session.commit()
 
-def addPermission(valokuva_id, henkilo):
-    sql = "SELECT id FROM photos_kayttajat WHERE tunnus=:tunnus"
-    kid = db.session.execute(sql, {"tunnus":henkilo}).fetchone()
-    if kid!=None:
-        sql = "SELECT COUNT(*) FROM photos_oikeudet WHERE kayttaja_id=:kid AND valokuva_id=:vid"
-        if db.session.execute(sql, {"kid":kid[0], "vid":valokuva_id}).fetchone()[0]==0:
-            db.session.execute("INSERT INTO photos_oikeudet (kayttaja_id, valokuva_id) VALUES (:kid, :vid)", {"kid":kid[0], "vid":valokuva_id})
+def add_permission(photo_id, username):
+    sql = "SELECT id FROM photos_kayttajat WHERE tunnus=:username"
+    user_id = db.session.execute(sql, {"username":username}).fetchone()
+    if user_id!=None:
+        sql = "SELECT COUNT(*) FROM photos_oikeudet WHERE kayttaja_id=:user_id AND valokuva_id=:photo_id"
+        if db.session.execute(sql, {"user_id":user_id[0], "photo_id":photo_id}).fetchone()[0]==0:
+            db.session.execute("INSERT INTO photos_oikeudet (kayttaja_id, valokuva_id) VALUES (:user_id, :photo_id)", {"user_id":user_id[0], "photo_id":photo_id})
             db.session.commit()
 
-def removePermission(valokuva_id, henkilo):
-    sql = "SELECT photos_oikeudet.id FROM photos_oikeudet, photos_kayttajat WHERE kayttaja_id=photos_kayttajat.id AND tunnus=:tunnus AND valokuva_id=:vid"
-    linkid = db.session.execute(sql, {"tunnus":henkilo, "vid":valokuva_id}).fetchone()
+def remove_permission(photo_id, username):
+    sql = "SELECT photos_oikeudet.id FROM photos_oikeudet, photos_kayttajat WHERE kayttaja_id=photos_kayttajat.id AND tunnus=:username AND valokuva_id=:photo_id"
+    linkid = db.session.execute(sql, {"username":username, "photo_id":photo_id}).fetchone()
     if linkid != None:
         db.session.execute("DELETE FROM photos_oikeudet WHERE id=:id", {"id":linkid[0]})
         db.session.commit()
 
-def updateAttributes(valokuva_id, kuvausaika, tekstikuvaus, kuvaajaid, paikkaid, julkinen):
-    sql = "UPDATE photos_valokuvat SET kuvausaika=:kuvausaika, tekstikuvaus=:tekstikuvaus, valokuvaaja_id=:kuvaajaid, paikka_id=:paikkaid, julkinen=:julkinen WHERE id=:id"
-    db.session.execute(sql, {"id":valokuva_id, "kuvausaika":kuvausaika, "tekstikuvaus":tekstikuvaus, "kuvaajaid":kuvaajaid, "paikkaid":paikkaid, "julkinen":julkinen})
+def update_attributes(photo_id, datetime, description, photographer_id, place_id, public):
+    sql = "UPDATE photos_valokuvat SET kuvausaika=:datetime, tekstikuvaus=:description, valokuvaaja_id=:photographer_id, paikka_id=:place_id, julkinen=:public WHERE id=:photo_id"
+    db.session.execute(sql, {"photo_id":photo_id, "datetime":datetime, "description":description, "photographer_id":photographer_id, "place_id":place_id, "public":public})
     db.session.commit()

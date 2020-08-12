@@ -4,43 +4,43 @@
 
 {% if session.username %}
 
-<form action="/view" method="POST" id="lomake">
+<form action="/view" method="POST" id="form">
     <table>
     <tr>
         <td>
             Päivämäärä: 
-            <input type="date" name="alku" value="{{ alku }}">-
-            <input type="date" name="loppu" value="{{ loppu }}">
+            <input type="date" name="startdate" value="{{ startdate }}">-
+            <input type="date" name="enddate" value="{{ enddate }}">
         </td>
         <td>
-            <label for="paikka">Paikka:</label>
-            <select name="paikka" form="lomake">
+            <label for="place">Paikka:</label>
+            <select name="place" form="form">
                 <option value=""></option>
-                {% for paikka in kaikkiPaikat %}
-                    <option value="{{ paikka[0] }}">{{ paikka[0] }}</option>
+                {% for place in allPlaces %}
+                    <option value="{{ place[0] }}">{{place[0] }}</option>
                 {% endfor %}
-                <option value="{{ paikka }}" selected hidden>{{ paikka }}</option>
+                <option value="{{ place }}" selected hidden>{{ place }}</option>
             </select>
         </td>
         <td>
-            <label for="henkilo">Henkilö:</label>
-            <select name="henkilo" form="lomake">
+            <label for="person">Henkilö:</label>
+            <select name="person" form="form">
                 <option value=""></option>
-                {% for nimi in kaikkiHenkilot %}
-                    <option value="{{ nimi[0] }}">{{ nimi[0] }}</option>
+                {% for person in allPersons %}
+                    <option value="{{ person[0] }}">{{ person[0] }}</option>
                 {% endfor %}
-                <option value="{{ henkilo }}" selected hidden>{{ henkilo }}</option>
+                <option value="{{ person }}" selected hidden>{{ person }}</option>
             </select>
         </td>
 
         <td>
-            <label for="avainsana">Avainsana:</label>
-            <select name="avainsana" form="lomake">
+            <label for="keyword">Avainsana:</label>
+            <select name="keyword" form="form">
                 <option value=""></option>
-                {% for sana in kaikkiAvainsanat %}
-                    <option value="{{ sana[0] }}">{{ sana[0] }}</option>
+                {% for keyword in allKeywords %}
+                    <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
                 {% endfor %}
-                <option value="{{ avainsana }}" selected hidden>{{ avainsana }}</option>
+                <option value="{{ keyword }}" selected hidden>{{ keyword }}</option>
             </select>
         </td>
     </tr>
@@ -51,25 +51,35 @@
 </form>
 
 <table>
-{% for kuva in kuvat %}
+{% for photo in photos %}
 <tr>
     <td>
-        <img src="/photos/photo{{ kuva[0][0] }}_thmb.jpg">
+        <img src="/photos/photo{{ photo[0][0] }}_thmb.jpg">
     </td>
     <td>
-        Päivämäärä: {{ kuva[0][1].strftime("%d.%m.%Y") }} <br>
-        {% if kuva[0][3] %}
-            Paikka: <a href="/placeinfo/{{ kuva[0][4] }}">{{ kuva[0][3] }}</a><br>
+        Päivämäärä:
+        {% if photo[0][1] %}
+             {{ photo[0][1].strftime("%d.%m.%Y") }} 
+        {% else %}
+            -- 
         {% endif %}
-        Kuvaus: {{ kuva[0][2] }} <br>
+        <br>
+        Paikka: 
+        {% if photo[0][3] %}
+            <a href="/placeinfo/{{ photo[0][4] }}">{{ photo[0][3] }}</a>
+        {% else %}
+            -- 
+        {% endif %}
+        <br>
+        Kuvaus: {{ photo[0][2] }} <br>
     </td>
     <td>
-        Henkilöt: {{ kuva[1] }} <br>
-        Avainsanat: {{ kuva[2] }} <br>
+        Henkilöt: {{ photo[1] }} <br>
+        Avainsanat: {{ photo[2] }} <br>
     </td>
     <td>
-        <a href="/addinfo/{{ kuva[0][0] }}">Muokkaa tietoja</a> <br>
-        <a href="/photos/photo{{ kuva[0][0] }}.jpg">Näytä kuva</a> <br>
+        <a href="/addinfo/{{ photo[0][0] }}">Muokkaa tietoja</a> <br>
+        <a href="/photos/photo{{ photo[0][0] }}.jpg">Näytä kuva</a> <br>
     </td>
 </tr>
 {% endfor %}

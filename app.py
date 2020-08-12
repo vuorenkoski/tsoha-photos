@@ -5,7 +5,7 @@ from re import compile
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
 
-from db import db, getAllPersons, getAllKeywords, getAllUsers, add_person
+from db import db, get_all_persons, get_all_keywords, get_all_users, add_person_todb
 import users, photos, places
 
 @app.route("/")
@@ -20,12 +20,12 @@ def login():
 
 @app.route("/login",methods=["POST"])
 def logindata():
-    kayttaja = users.getUserData(request.form["tunnus"])
-    if kayttaja == None:
+    user = users.get_userdata(request.form["username"])
+    if user == None:
         return render_template("login.html", error="tunnusta ei ole olemassa")
-    if users.checkPassword(kayttaja[2],request.form["salasana"]):
-        session["userid"] = int(kayttaja[0])
-        session["username"] = kayttaja[1]
+    if users.check_password(user[2],request.form["password"]):
+        session["userid"] = int(user[0])
+        session["username"] = user[1]
         session["csrf_token"] = urandom(16).hex()
         return redirect("/")
     return render_template("login.html", error="salasana on väärin")
@@ -37,40 +37,39 @@ def signup():
 
 @app.route("/signup",methods=["POST"])
 def signupdata():
-    tunnus = request.form["tunnus"]
-    salasana = request.form["salasana"]
-    if tunnus == "" or salasana == "":
+    username = request.form["username"]
+    password = request.form["password"]
+    if username == "" or password == "":
         return render_template("signup.html", error="tunnus tai salasana ei voi olla tyhjä")
-    if users.usernameExists(tunnus):
+    if users.username_exists(username):
         return render_template("signup.html", error="tunnus on jo käytössä")
-    id = users.newUser(tunnus,salasana)
-    session["username"] = tunnus
+    id = users.new_user(username,password)
+    session["username"] = username
     session["userid"] = id
     session["csrf_token"] = urandom(16).hex()
     return redirect("/")
 
 @app.route("/view", methods=["GET"])
 def view():
-    session["sivu"]="/view"
+    session["page"]="/view"
     if "userid" in session:
-        kuvat = photos.getUsersPhotos(session["userid"])
-        henkilot = [photos.getPersons(kuva[0])[0] for kuva in kuvat]
-        avainsanat = [photos.getKeywords(kuva[0])[0] for kuva in kuvat]
-        return render_template("view.html", kuvat=list(zip(kuvat,henkilot,avainsanat)), kaikkiPaikat=places.getAllNames(), 
-            kaikkiAvainsanat=getAllKeywords(), kaikkiHenkilot=getAllPersons())
+        photodata = photos.get_users_photos(session["userid"])
+        persons = [photos.get_persons(photo[0])[0] for photo in photodata]
+        keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
+        return render_template("view.html", photos=list(zip(photodata,persons,keywords)), allPlaces=places.get_all_names(), 
+            allKeywords=get_all_keywords(), allPersons=get_all_persons())
     else:
         return render_template("view.html")
 
 @app.route("/view", methods=["POST"])
 def viewdata():
     if "userid" in session:
-        kuvat = photos.getUsersPhotos(session["userid"], f=request.form)
-        henkilot = [photos.getPersons(kuva[0])[0] for kuva in kuvat]
-        avainsanat = [photos.getKeywords(kuva[0])[0] for kuva in kuvat]
-        print(request.form["henkilo"])
-        return render_template("view.html", kuvat=list(zip(kuvat,henkilot,avainsanat)), kaikkiPaikat=places.getAllNames(), 
-            kaikkiAvainsanat=getAllKeywords(), kaikkiHenkilot=getAllPersons(), alku=request.form["alku"], loppu=request.form["loppu"],
-            paikka=request.form["paikka"], henkilo=request.form["henkilo"], avainsana=request.form["avainsana"])
+        photodata = photos.get_users_photos(session["userid"], f=request.form)
+        persons = [photos.get_persons(photo[0])[0] for photo in photodata]
+        keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
+        return render_template("view.html", photos=list(zip(photodata,persons,keywords)), allPlaces=places.get_all_names(), 
+            allKeywords=get_all_keywords(), allPersons=get_all_persons(), startdate=request.form["startdate"], enddata=request.form["enddate"],
+            place=request.form["place"], person=request.form["person"], keyword=request.form["keyword"])
     else:
         return render_template("view.html")
 
@@ -78,97 +77,107 @@ def viewdata():
 def viewothers():
     session["page"]="/viewothers"
     if "userid" in session:
-        kuvat = photos.getOthersPhotos(session["userid"])
-        henkilot = [photos.getPersons(kuva[0])[0] for kuva in kuvat]
-        avainsanat = [photos.getKeywords(kuva[0])[0] for kuva in kuvat]
-        return render_template("viewothers.html", kuvat=list(zip(kuvat,henkilot,avainsanat)), kaikkiPaikat=places.getAllNames(), 
-            kayttajat=getAllUsers(), kaikkiAvainsanat=getAllKeywords(), kaikkiHenkilot=getAllPersons())
+        photodata = photos.get_others_photos(session["userid"])
+        persons = [photos.get_persons(photo[0])[0] for photo in photodata]
+        keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
+        return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), allPlaces=places.get_all_names(), 
+            allUsers=get_all_users(), allKeywords=get_all_keywords(), allPersons=get_all_persons())
     else:
         return render_template("viewothers.html")
 
 @app.route("/upload", methods=["GET"])
 def upload_photo():
     session["page"]="/upload"
-    return render_template("upload.html", kaikkiPaikat=places.getAllNames(), kayttajat=getAllUsers())
+    return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons())
 
 @app.route("/upload", methods=["POST"])
 def upload_photodata():
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
-    kuvat = request.files.getlist("kuva")
-    if len(kuvat)==1:
-        kuva = kuvat[0]
-        if kuva.filename == "":
+    images = request.files.getlist("photo")
+    if len(images)==1:
+        image = images[0]
+        if image.filename == "":
             return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
-        if not kuva.filename.lower().endswith(".jpg"):
+        if not image.filename.lower().endswith(".jpg"):
             return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
-        id = photos.savePhoto(session["userid"], kuva, places.add(request.form["paikka"]), add_person(request.form["kuvaaja"]))
+        id = photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
     else:
-        for kuva in kuvat:
+        for image in images:
             if kuva.filename.lower().endswith(".jpg"):
-                photos.savePhoto(session["userid"], kuva, places.add(request.form["paikka"]), add_person(request.form["kuvaaja"]))
+                photos.savePhoto(session["userid"], image, places.add(request.form["place"]), add_person(request.form["photographer"]))
         return redirect("/upload")
     return redirect("/addinfo/"+str(id))
 
 @app.route("/addinfo/<int:id>", methods=["GET"])
 def addinfo(id):
-    if not users.checkPermissionToModify(session, id):
+    if not users.check_permission_to_modify(session, id):
         return "Ei oikeuksia"
 
-    kuva = photos.getAttributes(id)
-    if kuva[1]==None:
-        kuvaaja=""
+    photo_attributes = photos.get_attributes(id)
+    if photo_attributes[1]==None:
+        photographer = ""
     else:
-        kuvaaja=kuva[1]
+        photographer = photo_attributes[1]
 
-    if kuva[3]:
-        julkinen="checked"
+    if photo_attributes[3]:
+        public = "checked"
     else:
-        julkinen=""
+        public = ""
 
-    henkilostr,henkilot = photos.getPersons(id)
-    avainsanastr,avainsanat = photos.getKeywords(id)
-    paikka = photos.getPlace(id)
-    oikeudetstr,oikeudet = photos.getPermissions(id)
-    edellinenSivu = session["page"]
+    personstr,persons = photos.get_persons(id)
+    keywordstr,keywords = photos.get_keywords(id)
+    place = photos.get_place(id)
+    permissionstr,permissions = photos.get_permissions(id)
+    previousPage = session["page"]
     session["page"]="/addinfo"
-    return render_template("addinfo.html", valokuva_id=id, paivamaara=kuva[0].strftime("%Y-%m-%d"), aika=kuva[0].strftime("%H:%M"), 
-        tekstikuvaus=kuva[2], kuvaaja=kuvaaja, henkilostr=henkilostr, henkilot=henkilot, kaikkiHenkilot=getAllPersons(), 
-        avainsanastr=avainsanastr, avainsanat=avainsanat, kaikkiAvainsanat=getAllKeywords(), paikka=paikka, kaikkiPaikat=places.getAllNames(), 
-        julkinen=julkinen, oikeudetstr=oikeudetstr, oikeudet=oikeudet, kayttajat=getAllUsers(), edellinenSivu=edellinenSivu)
+    if photo_attributes[0]!=None:
+        date = photo_attributes[0].strftime("%Y-%m-%d")
+        time = photo_attributes[0].strftime("%H:%M")
+    else:
+        date = None
+        time = None
+    return render_template("addinfo.html", photo_id=id, date=date, time=time, 
+        description=photo_attributes[2], photographer=photographer, personstr=personstr, persons=persons, allPersons=get_all_persons(), 
+        keywordstr=keywordstr, keywords=keywords, allKeywords=get_all_keywords(), place=place, allPlaces=places.get_all_names(), 
+        public=public, permissionstr=permissionstr, permissions=permissions, users=get_all_users(), previousPage=previousPage)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfodata(id):
-    if not users.checkPermissionToModify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
+    if not users.check_permission_to_modify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
-    poistu = True
-    kuvausaika = request.form["kuvauspaiva"] + " " + request.form["aika"]
-    tekstikuvaus = request.form["tekstikuvaus"]
-    julkinen = "julkinen" in request.form
-    kuvaajaid=add_person(request.form["kuvaaja"])
-    paikkaid=places.add(request.form["paikka"])
+    exitPage = True
 
-    if request.form["lisaaHenkilo"]!="":
-        photos.addPerson(id, request.form["lisaaHenkilo"])
-        poistu=False
-    if request.form["poistaHenkilo"]!="":
-        photos.removePerson(id, request.form["poistaHenkilo"])
-        poistu=False
-    if request.form["lisaaAvainsana"]!="":
-        photos.addKeyword(id, request.form["lisaaAvainsana"])
-        poistu=False
-    if request.form["poistaAvainsana"]!="":
-        photos.removeKeyword(id, request.form["poistaAvainsana"])
-        poistu=False
-    if request.form["lisaaOikeus"]!="":
-        photos.addPermission(id, request.form["lisaaOikeus"])
-        poistu=False
-    if request.form["poistaOikeus"]!="":
-        photos.removePermission(id, request.form["poistaOikeus"])
-        poistu=False
-    photos.updateAttributes(id, kuvausaika, tekstikuvaus, kuvaajaid, paikkaid, julkinen)
-    if poistu:
-        if request.form["edellinenSivu"]=="/upload":
+    if request.form["date"]!="":
+        datetime = request.form["date"] + " " + request.form["time"]
+    else:
+        datetime = None
+    description = request.form["description"]
+    public = "public" in request.form
+    photographer_id=add_person_todb(request.form["photographer"])
+    place_id=places.add(request.form["place"])
+
+    if request.form["addPerson"]!="":
+        photos.add_person(id, request.form["addPerson"])
+        exitPage = False
+    if request.form["removePerson"]!="":
+        photos.remove_person(id, request.form["removePerson"])
+        exitPage = False
+    if request.form["addKeyword"]!="":
+        photos.add_keyword(id, request.form["addKeyword"])
+        exitPage = False
+    if request.form["removeKeyword"]!="":
+        photos.remove_keyword(id, request.form["removeKeyword"])
+        exitPage = False
+    if request.form["addPermission"]!="":
+        photos.add_permission(id, request.form["addPermission"])
+        exitPage = False
+    if request.form["removePermission"]!="":
+        photos.remove_permission(id, request.form["removePermission"])
+        exitPage = False
+    photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
+    if exitPage:
+        if request.form["previousPage"]=="/upload":
             return redirect("/upload") 
         return redirect("/view")
     else:
@@ -179,38 +188,38 @@ def placelist():
     if not "userid" in session:
         return "Ei oikeuksia"
     session["page"]="/places"
-    return render_template("places.html", paikat=places.getAll())
+    return render_template("places.html", places=places.get_all())
 
 @app.route("/place/<int:id>", methods=["GET"])
 def place(id):
     if not "userid" in session:
         return "Ei oikeuksia"
-    paikka = places.getAttributes(id)
+    place = places.get_attributes(id)
     session["page"]="/places"
-    return render_template("place.html", paikkaid=id, paikka=paikka[0], kaupunki=paikka[1], maa=paikka[2], alue=paikka[3], wwwsivu=paikka[4])
+    return render_template("place.html", place_id=id, place=place[0], city=place[1], country=place[2], region=place[3], wwwpage=place[4])
 
 @app.route("/place/<int:id>", methods=["POST"])
 def placedata(id):
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
-    places.update(id, request.form["maa"], request.form["alue"], request.form["kaupunki"], request.form["wwwsivu"])
+    places.update(id, request.form["country"], request.form["region"], request.form["city"], request.form["wwwpage"])
     return redirect("/places")
 
 @app.route("/placeinfo/<int:id>", methods=["GET"])
 def placeinfo(id):
     if not "userid" in session:
         return "Ei oikeuksia"
-    paikka = places.getAttributes(id)
+    place = places.get_attributes(id)
     session["page"]="/placeinfo"
-    return render_template("placeinfo.html", paikkaid=id, paikka=paikka[0], kaupunki=paikka[1], maa=paikka[2], alue=paikka[3], wwwsivu=paikka[4])
+    return render_template("placeinfo.html", place_id=id, place=place[0], city=place[1], country=place[2], region=place[3], wwwpage=place[4])
 
-@app.route("/photos/<tiedostonimi>")
-def show_photo(tiedostonimi):
+@app.route("/photos/<filename>")
+def show_photo(filename):
     p=compile(r"\d+")
-    if not users.checkPermissionToView(session, int(p.findall(tiedostonimi)[0])):
+    if not users.check_permission_to_view(session, int(p.findall(filename)[0])):
         return "Ei oikeuksia"
     session["page"]="/photos"
-    return photos.getImage(tiedostonimi)
+    return photos.get_image(filename)
 
 @app.route("/logout")
 def logout():

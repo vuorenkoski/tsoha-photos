@@ -4,14 +4,14 @@
 {% block content %}
 {% if session.username %}
 <hr>
-<h3>{{ paikka }}</h3>
+<h3>{{ place }}</h3>
 
-<p>Kaupunki: {{ kaupunki }}</p>
-<p>Alue: {{ alue }}</p>
-<p>Maa: {{ maa }}</p>
-<p>WWW-sivu: <a href="{{ wwwsivu }}">{{ wwwsivu }}</a></p>
+<p>Kaupunki: {{ city }}</p>
+<p>Alue: {{ region }}</p>
+<p>Maa: {{ country }}</p>
+<p>WWW-sivu: <a href="{{ wwwpage }}">{{ wwwpage }}</a></p>
 
-<a href="/place/{{ paikkaid }}">Muokkaa</a>
+<a href="/place/{{ place_id }}">Muokkaa</a>
 {% endif %}
 
 

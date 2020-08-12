@@ -4,19 +4,19 @@
 
 {% if session.username %}
 <table>
-{% for paikka in paikat %}
+{% for place in places %}
 <tr>
     <td>
-        <b>Paikka: {{ paikka[1] }} </b><br>
-        Kaupunki: {{ paikka[4] }} <br>
+        <b>Paikka: {{ place[1] }} </b><br>
+        Kaupunki: {{ place[4] }} <br>
     </td>
     <td>
-        Maa: {{ paikka[2] }} <br>
-        Alue: {{ paikka[3] }} <br>
+        Maa: {{ place[2] }} <br>
+        Alue: {{ place[3] }} <br>
     </td>
     <td>
-        www-osoite: {{ paikka[5] }} <br>
-        <a href="/place/{{ paikka[0] }}">Muokkaa tietoja</a> <br>
+        www-osoite: {{ place[5] }} <br>
+        <a href="/place/{{ place[0] }}">Muokkaa tietoja</a> <br>
     </td>
 </tr>
 {% endfor %}
