@@ -10,10 +10,12 @@ import users, photos, places
 
 @app.route("/")
 def index():
+    session["page"]="/"
     return render_template("index.html")
 
 @app.route("/login",methods=["GET"])
 def login():
+    session["page"]="/login"
     return render_template("login.html")
 
 @app.route("/login",methods=["POST"])
@@ -30,6 +32,7 @@ def logindata():
 
 @app.route("/signup",methods=["GET"])
 def signup():
+    session["page"]="/signup"
     return render_template("signup.html")
 
 @app.route("/signup",methods=["POST"])
@@ -48,38 +51,63 @@ def signupdata():
 
 @app.route("/view", methods=["GET"])
 def view():
+    session["sivu"]="/view"
     if "userid" in session:
         kuvat = photos.getUsersPhotos(session["userid"])
         henkilot = [photos.getPersons(kuva[0])[0] for kuva in kuvat]
         avainsanat = [photos.getKeywords(kuva[0])[0] for kuva in kuvat]
-        return render_template("view.html", kuvat=list(zip(kuvat,henkilot,avainsanat)))
+        return render_template("view.html", kuvat=list(zip(kuvat,henkilot,avainsanat)), kaikkiPaikat=places.getAllNames(), 
+            kaikkiAvainsanat=getAllKeywords(), kaikkiHenkilot=getAllPersons())
+    else:
+        return render_template("view.html")
+
+@app.route("/view", methods=["POST"])
+def viewdata():
+    if "userid" in session:
+        kuvat = photos.getUsersPhotos(session["userid"], f=request.form)
+        henkilot = [photos.getPersons(kuva[0])[0] for kuva in kuvat]
+        avainsanat = [photos.getKeywords(kuva[0])[0] for kuva in kuvat]
+        print(request.form["henkilo"])
+        return render_template("view.html", kuvat=list(zip(kuvat,henkilot,avainsanat)), kaikkiPaikat=places.getAllNames(), 
+            kaikkiAvainsanat=getAllKeywords(), kaikkiHenkilot=getAllPersons(), alku=request.form["alku"], loppu=request.form["loppu"],
+            paikka=request.form["paikka"], henkilo=request.form["henkilo"], avainsana=request.form["avainsana"])
     else:
         return render_template("view.html")
 
 @app.route("/viewothers", methods=["GET"])
 def viewothers():
+    session["page"]="/viewothers"
     if "userid" in session:
         kuvat = photos.getOthersPhotos(session["userid"])
         henkilot = [photos.getPersons(kuva[0])[0] for kuva in kuvat]
         avainsanat = [photos.getKeywords(kuva[0])[0] for kuva in kuvat]
-        return render_template("viewothers.html", kuvat=list(zip(kuvat,henkilot,avainsanat)))
+        return render_template("viewothers.html", kuvat=list(zip(kuvat,henkilot,avainsanat)), kaikkiPaikat=places.getAllNames(), 
+            kayttajat=getAllUsers(), kaikkiAvainsanat=getAllKeywords(), kaikkiHenkilot=getAllPersons())
     else:
         return render_template("viewothers.html")
 
 @app.route("/upload", methods=["GET"])
 def upload_photo():
-    return render_template("upload.html")
+    session["page"]="/upload"
+    return render_template("upload.html", kaikkiPaikat=places.getAllNames(), kayttajat=getAllUsers())
 
 @app.route("/upload", methods=["POST"])
 def upload_photodata():
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
-    kuva = request.files["kuva"]
-    if kuva.filename == "":
-        return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
-    if not kuva.filename.lower().endswith(".jpg"):
-        return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
-    id = photos.savePhoto(session["userid"], kuva)
+    kuvat = request.files.getlist("kuva")
+    if len(kuvat)==1:
+        kuva = kuvat[0]
+        if kuva.filename == "":
+            return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
+        if not kuva.filename.lower().endswith(".jpg"):
+            return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
+        id = photos.savePhoto(session["userid"], kuva, places.add(request.form["paikka"]), add_person(request.form["kuvaaja"]))
+    else:
+        for kuva in kuvat:
+            if kuva.filename.lower().endswith(".jpg"):
+                photos.savePhoto(session["userid"], kuva, places.add(request.form["paikka"]), add_person(request.form["kuvaaja"]))
+        return redirect("/upload")
     return redirect("/addinfo/"+str(id))
 
 @app.route("/addinfo/<int:id>", methods=["GET"])
@@ -102,10 +130,12 @@ def addinfo(id):
     avainsanastr,avainsanat = photos.getKeywords(id)
     paikka = photos.getPlace(id)
     oikeudetstr,oikeudet = photos.getPermissions(id)
+    edellinenSivu = session["page"]
+    session["page"]="/addinfo"
     return render_template("addinfo.html", valokuva_id=id, paivamaara=kuva[0].strftime("%Y-%m-%d"), aika=kuva[0].strftime("%H:%M"), 
         tekstikuvaus=kuva[2], kuvaaja=kuvaaja, henkilostr=henkilostr, henkilot=henkilot, kaikkiHenkilot=getAllPersons(), 
         avainsanastr=avainsanastr, avainsanat=avainsanat, kaikkiAvainsanat=getAllKeywords(), paikka=paikka, kaikkiPaikat=places.getAllNames(), 
-        julkinen=julkinen, oikeudetstr=oikeudetstr, oikeudet=oikeudet, kayttajat=getAllUsers())
+        julkinen=julkinen, oikeudetstr=oikeudetstr, oikeudet=oikeudet, kayttajat=getAllUsers(), edellinenSivu=edellinenSivu)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfodata(id):
@@ -137,8 +167,9 @@ def addinfodata(id):
         photos.removePermission(id, request.form["poistaOikeus"])
         poistu=False
     photos.updateAttributes(id, kuvausaika, tekstikuvaus, kuvaajaid, paikkaid, julkinen)
-
     if poistu:
+        if request.form["edellinenSivu"]=="/upload":
+            return redirect("/upload") 
         return redirect("/view")
     else:
         return redirect("/addinfo/"+str(id))
@@ -147,6 +178,7 @@ def addinfodata(id):
 def placelist():
     if not "userid" in session:
         return "Ei oikeuksia"
+    session["page"]="/places"
     return render_template("places.html", paikat=places.getAll())
 
 @app.route("/place/<int:id>", methods=["GET"])
@@ -154,6 +186,7 @@ def place(id):
     if not "userid" in session:
         return "Ei oikeuksia"
     paikka = places.getAttributes(id)
+    session["page"]="/places"
     return render_template("place.html", paikkaid=id, paikka=paikka[0], kaupunki=paikka[1], maa=paikka[2], alue=paikka[3], wwwsivu=paikka[4])
 
 @app.route("/place/<int:id>", methods=["POST"])
@@ -168,6 +201,7 @@ def placeinfo(id):
     if not "userid" in session:
         return "Ei oikeuksia"
     paikka = places.getAttributes(id)
+    session["page"]="/placeinfo"
     return render_template("placeinfo.html", paikkaid=id, paikka=paikka[0], kaupunki=paikka[1], maa=paikka[2], alue=paikka[3], wwwsivu=paikka[4])
 
 @app.route("/photos/<tiedostonimi>")
@@ -175,6 +209,7 @@ def show_photo(tiedostonimi):
     p=compile(r"\d+")
     if not users.checkPermissionToView(session, int(p.findall(tiedostonimi)[0])):
         return "Ei oikeuksia"
+    session["page"]="/photos"
     return photos.getImage(tiedostonimi)
 
 @app.route("/logout")
@@ -182,4 +217,5 @@ def logout():
     del session["username"]
     del session["userid"]
     del session["csrf_token"]
+    session["page"]="/logout"
     return redirect("/")

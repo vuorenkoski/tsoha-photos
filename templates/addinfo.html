@@ -15,7 +15,6 @@
             <option value="{{ nimi[0] }}">
         {% endfor %}
     </datalist>
-
     <datalist id="Kaikki avainsanat">
         {% for nimi in kaikkiAvainsanat %}
             <option value="{{ nimi[0] }}">
@@ -83,7 +82,8 @@
         <input list="Kaikki paikat" name="paikka" value="{{ paikka }}"></p>
     
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-    
+    <input type="hidden" name="edellinenSivu" value="{{ edellinenSivu }}">
+
     <input type="submit" value="Talenna tiedot">
 
 </form>

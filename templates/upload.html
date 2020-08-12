@@ -6,7 +6,25 @@
 {% if session.username %}
 
 <form method=post enctype=multipart/form-data>
-  <input type=file name=kuva>
+  <datalist id="Kaikki paikat">
+    {% for paikka in kaikkiPaikat %}
+        <option value="{{ paikka[0] }}">
+    {% endfor %}
+  </datalist>
+  <datalist id="Kaikki henkilot">
+    {% for nimi in kaikkiHenkilot %}
+        <option value="{{ nimi[0] }}">
+    {% endfor %}
+  </datalist>
+
+  <p><input type=file name=kuva multiple></p>
+
+  <p><label for="kuvaaja"></label>Kuvaaja</label>
+    <input list="Kaikki henkilot" name="kuvaaja"></p>
+
+    <p><label for="paikka"></label>Paikka</label>
+      <input list="Kaikki paikat" name="paikka"></p>
+
   <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
   <input type=submit value=Lataa>
 </form>

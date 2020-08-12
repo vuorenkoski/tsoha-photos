@@ -4,6 +4,52 @@
 
 {% if session.username %}
 
+<form action="/view" method="POST" id="lomake">
+    <table>
+    <tr>
+        <td>
+            Päivämäärä: 
+            <input type="date" name="alku" value="{{ alku }}">-
+            <input type="date" name="loppu" value="{{ loppu }}">
+        </td>
+        <td>
+            <label for="paikka">Paikka:</label>
+            <select name="paikka" form="lomake">
+                <option value=""></option>
+                {% for paikka in kaikkiPaikat %}
+                    <option value="{{ paikka[0] }}">{{ paikka[0] }}</option>
+                {% endfor %}
+                <option value="{{ paikka }}" selected hidden>{{ paikka }}</option>
+            </select>
+        </td>
+        <td>
+            <label for="henkilo">Henkilö:</label>
+            <select name="henkilo" form="lomake">
+                <option value=""></option>
+                {% for nimi in kaikkiHenkilot %}
+                    <option value="{{ nimi[0] }}">{{ nimi[0] }}</option>
+                {% endfor %}
+                <option value="{{ henkilo }}" selected hidden>{{ henkilo }}</option>
+            </select>
+        </td>
+
+        <td>
+            <label for="avainsana">Avainsana:</label>
+            <select name="avainsana" form="lomake">
+                <option value=""></option>
+                {% for sana in kaikkiAvainsanat %}
+                    <option value="{{ sana[0] }}">{{ sana[0] }}</option>
+                {% endfor %}
+                <option value="{{ avainsana }}" selected hidden>{{ avainsana }}</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <input type=submit value=Päivitä>
+    </tr>
+    </table>
+</form>
+
 <table>
 {% for kuva in kuvat %}
 <tr>
@@ -18,7 +64,7 @@
         Kuvaus: {{ kuva[0][2] }} <br>
     </td>
     <td>
-        Henkilot: {{ kuva[1] }} <br>
+        Henkilöt: {{ kuva[1] }} <br>
         Avainsanat: {{ kuva[2] }} <br>
     </td>
     <td>

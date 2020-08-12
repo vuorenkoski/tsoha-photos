@@ -10,10 +10,38 @@ USE_PSQL_STORAGE_FOR_JPG = True
 app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 
-def getUsersPhotos(kayttaja_id):
+def getUsersPhotos(kayttaja_id, f = None):
+    arvot = dict({"kayttaja_id":kayttaja_id})
+    filtterit = ["kayttaja_id=:kayttaja_id"]
+    if f!=None:
+        if f["alku"]!="":
+            arvot["alku"]=f["alku"]
+            filtterit.append("kuvausaika>=:alku")
+        if f["loppu"]!="":
+            arvot["loppu"]=f["loppu"]+" 23:59"
+            filtterit.append("kuvausaika<=:loppu")
+        if f["paikka"]!="":
+            sql = "SELECT id FROM photos_paikat WHERE paikka=:paikka"
+            result = db.session.execute(sql, {"paikka":f["paikka"]}).fetchone()
+            if result!=None:
+                arvot["paikka_id"]=result[0]
+                filtterit.append("paikka_id=:paikka_id")
+        if f["henkilo"]!="":
+            sql = "SELECT id FROM photos_henkilot WHERE nimi=:nimi"
+            result = db.session.execute(sql, {"nimi":f["henkilo"]}).fetchone()
+            if result!=None:
+                arvot["henkilo_id"]=result[0]
+                filtterit.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienhenkilot WHERE henkilo_id=:henkilo_id)")
+        if f["avainsana"]!="":
+            sql = "SELECT id FROM photos_avainsanat WHERE avainsana=:avainsana"
+            result = db.session.execute(sql, {"avainsana":f["avainsana"]}).fetchone()
+            if result!=None:
+                arvot["avainsana_id"]=result[0]
+                filtterit.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienavainsanat WHERE avainsana_id=:avainsana_id)")
+
     sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id FROM photos_valokuvat " \
-        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE kayttaja_id=:kayttaja_id"
-    result = db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
+        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE " + " AND ".join(filtterit)
+    result = db.session.execute(sql, arvot).fetchall()
     return sorted(result, key=lambda tup: tup[1])
 
 def getOthersPhotos(kayttaja_id):
@@ -25,7 +53,7 @@ def getOthersPhotos(kayttaja_id):
     result = db.session.execute(sql, {"kayttaja_id":kayttaja_id}).fetchall()
     return sorted(result, key=lambda tup: tup[1])
 
-def savePhoto(kayttaja_id, kuva):
+def savePhoto(kayttaja_id, kuva, paikka_id, valokuvaaja_id):
     image = Image.open(kuva)
     image.thumbnail(PHOTO_SIZE)
     paivays=image._getexif()[36867]
@@ -34,8 +62,9 @@ def savePhoto(kayttaja_id, kuva):
         paivays=paivays[0:4]+"-"+paivays[5:7]+"-"+paivays[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
     else:
         paivays=None
-    sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus, julkinen) VALUES (:kayttaja_id, :paivays, NOW(), :tekstikuvaus, false) RETURNING id"
-    result=db.session.execute(sql, {"kayttaja_id":kayttaja_id, "paivays":paivays, "tekstikuvaus":""})
+    sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus, julkinen, paikka_id, valokuvaaja_id) " \
+        "VALUES (:kayttaja_id, :paivays, NOW(), :tekstikuvaus, false, :paikka_id, :valokuvaaja_id) RETURNING id"
+    result=db.session.execute(sql, {"kayttaja_id":kayttaja_id, "paivays":paivays, "tekstikuvaus":"", "paikka_id":paikka_id, "valokuvaaja_id":valokuvaaja_id})
     id=result.fetchone()[0]
     db.session.commit()
 

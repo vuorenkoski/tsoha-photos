@@ -3,6 +3,54 @@
 {% block content %}
 
 {% if session.username %}
+<form action="/viewothers/{{ valokuva_id }}" method="POST">
+
+    <datalist id="Kaikki henkilot">
+        {% for nimi in kaikkiHenkilot %}
+            <option value="{{ nimi[0] }}">
+        {% endfor %}
+    </datalist>
+    <datalist id="Kaikki avainsanat">
+        {% for nimi in kaikkiAvainsanat %}
+            <option value="{{ nimi[0] }}">
+        {% endfor %}
+    </datalist>
+    <datalist id="Kaikki paikat">
+        {% for paikka in kaikkiPaikat %}
+            <option value="{{ paikka[0] }}">
+        {% endfor %}
+    </datalist>
+    <datalist id="kayttajat">
+        {% for tunnus in kayttajat %}
+            <option value="{{ tunnus[0] }}">
+        {% endfor %}
+    </datalist>
+
+<table>
+<tr>
+    <td>
+        Päivämäärä: 
+        <input type="date" name="alku" value="{{ alku }}">-
+        <input type="date" name="loppu" value="{{ loppu }}">
+    </td>
+    <td>
+        Paikka:
+        <input list="Kaikki paikat" name="paikka" value="{{ paikka }}">
+    </td>
+    <td>
+        Henkilö:
+        <input list="Kaikki henkilot" name="henkilo" value="{{ henkilo }}">
+    </td>
+    <td>
+        Avainsana:
+        <input list="Kaikki avainsanat" name="avainsana" value="{{ avainsana }}">
+    </td>
+    <td>
+        Käyttäjä:
+        <input list="kayttajat" name="kayttaja" value="{{ kayttaja }}">
+    </td>
+</tr>
+</table>
 
 <table>
 {% for kuva in kuvat %}
@@ -16,7 +64,7 @@
         Kuvaus: {{ kuva[0][2] }} <br>
     </td>
     <td>
-        Henkilot: {{ kuva[1] }} <br>
+        Henkilöt: {{ kuva[1] }} <br>
         Avainsanat: {{ kuva[2] }} <br>
     </td>
     <td>
