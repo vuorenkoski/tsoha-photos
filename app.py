@@ -1,6 +1,8 @@
 from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
 from os import getenv, path, urandom
-from re import compile
+
+import re
+parse_photoid = re.compile(r"photo(\d+)(_thmb)?\.jpg\Z")
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
@@ -215,11 +217,12 @@ def placeinfo(id):
 
 @app.route("/photos/<filename>")
 def show_photo(filename):
-    p=compile(r"\d+")
-    if not users.check_permission_to_view(session, int(p.findall(filename)[0])):
-        return "Ei oikeuksia"
-    session["page"]="/photos"
-    return photos.get_image(filename)
+    r = parse_photoid.match(filename)
+    if r!=None:
+        if not users.check_permission_to_view(session, int(r.group(1))):
+            return "Ei oikeuksia"
+        return photos.get_image(filename)
+    return "kuvaa ei ole"
 
 @app.route("/logout")
 def logout():
