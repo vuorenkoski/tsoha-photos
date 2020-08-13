@@ -183,3 +183,14 @@ def update_attributes(photo_id, datetime, description, photographer_id, place_id
     sql = "UPDATE photos_valokuvat SET kuvausaika=:datetime, tekstikuvaus=:description, valokuvaaja_id=:photographer_id, paikka_id=:place_id, julkinen=:public WHERE id=:photo_id"
     db.session.execute(sql, {"photo_id":photo_id, "datetime":datetime, "description":description, "photographer_id":photographer_id, "place_id":place_id, "public":public})
     db.session.commit()
+
+def remove(photo_id):
+    sql = "DELETE FROM photos_valokuvat WHERE id=:photo_id"
+    db.session.execute(sql, {"photo_id":photo_id})
+    sql = "DELETE FROM photos_valokuvienavainsanat WHERE valokuva_id=:photo_id"
+    db.session.execute(sql, {"photo_id":photo_id})
+    sql = "DELETE FROM photos_valokuvienhenkilot WHERE valokuva_id=:photo_id"
+    db.session.execute(sql, {"photo_id":photo_id})
+    sql = "DELETE FROM photos_oikeudet WHERE valokuva_id=:photo_id"
+    db.session.execute(sql, {"photo_id":photo_id})
+    db.session.commit()

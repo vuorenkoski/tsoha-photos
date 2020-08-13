@@ -3,7 +3,6 @@
 {% block content %}
 
 {% if session.username %}
-
 <form action="/view" method="POST" id="form">
     <table>
     <tr>
@@ -45,7 +44,9 @@
         </td>
     </tr>
     <tr>
-        <input type=submit value=Päivitä>
+        <td>
+            <input type=submit value=Päivitä>
+        </td>
     </tr>
     </table>
 </form>
@@ -80,6 +81,7 @@
     <td>
         <a href="/addinfo/{{ photo[0][0] }}">Muokkaa tietoja</a> <br>
         <a href="/photos/photo{{ photo[0][0] }}.jpg">Näytä kuva</a> <br>
+        <a href="/remove/{{ photo[0][0] }}">Poista kuva</a> <br>
     </td>
 </tr>
 {% endfor %}

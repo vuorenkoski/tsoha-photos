@@ -185,6 +185,20 @@ def addinfodata(id):
     else:
         return redirect("/addinfo/"+str(id))
 
+@app.route("/remove/<int:id>", methods=["GET"])
+def remove(id):
+    if not users.check_permission_to_modify(session, id):
+        return "Ei oikeuksia"
+    return render_template("remove.html", photo_id=id)
+
+@app.route("/remove/<int:id>", methods=["POST"])
+def removedata(id):
+    if not users.check_permission_to_modify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
+        return "Ei oikeuksia"
+    if request.form["removephoto"]==session["csrf_token"]:
+        photos.remove(id)
+    return redirect("/view")
+
 @app.route("/places", methods=["GET"])
 def placelist():
     if not "userid" in session:
