@@ -111,8 +111,8 @@ def upload_photo_data():
         id = photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
     else:
         for image in images:
-            if kuva.filename.lower().endswith(".jpg"):
-                photos.savePhoto(session["userid"], image, places.add(request.form["place"]), add_person(request.form["photographer"]))
+            if image.filename.lower().endswith(".jpg"):
+                photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
         return redirect("/upload")
     return redirect("/addinfo/"+str(id))
 
