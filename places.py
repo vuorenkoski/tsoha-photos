@@ -13,7 +13,7 @@ def add(place):
     return place_id[0]
 
 def get_all_names():
-    sql = "SELECT paikka FROM photos_paikat"
+    sql = "SELECT paikka FROM photos_paikat ORDER BY paikka ASC "
     return db.session.execute(sql).fetchall()
 
 def get_all():
