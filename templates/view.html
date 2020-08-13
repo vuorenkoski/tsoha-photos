@@ -3,53 +3,58 @@
 {% block content %}
 
 {% if session.username %}
-<form action="/view" method="POST" id="form">
-    <table>
-    <tr>
-        <td>
-            Päivämäärä: 
-            <input type="date" name="startdate" value="{{ startdate }}">-
-            <input type="date" name="enddate" value="{{ enddate }}">
-        </td>
-        <td>
-            <label for="place">Paikka:</label>
-            <select name="place" form="form">
-                <option value=""></option>
-                {% for place in allPlaces %}
-                    <option value="{{ place[0] }}">{{place[0] }}</option>
-                {% endfor %}
-                <option value="{{ place }}" selected hidden>{{ place }}</option>
-            </select>
-        </td>
-        <td>
-            <label for="person">Henkilö:</label>
-            <select name="person" form="form">
-                <option value=""></option>
-                {% for person in allPersons %}
-                    <option value="{{ person[0] }}">{{ person[0] }}</option>
-                {% endfor %}
-                <option value="{{ person }}" selected hidden>{{ person }}</option>
-            </select>
-        </td>
-
-        <td>
-            <label for="keyword">Avainsana:</label>
-            <select name="keyword" form="form">
-                <option value=""></option>
-                {% for keyword in allKeywords %}
-                    <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
-                {% endfor %}
-                <option value="{{ keyword }}" selected hidden>{{ keyword }}</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <input type=submit value=Päivitä>
-        </td>
-    </tr>
-    </table>
+<form action="/view" method="POST" id="filters"></form>
+<form action="/view" method="POST" id="reset">
+    <input type="hidden" name="reset" value="reset">
 </form>
+
+<table>
+<tr>
+    <td>
+        Päivämäärä: 
+        <input type="date" form="filters" name="startdate" value="{{ filters['startdate'] }}">-
+        <input type="date" form="filters" name="enddate" value="{{ filters['enddate'] }}">
+    </td>
+    <td>
+        <label for="place">Paikka:</label>
+        <select name="place" form="filters">
+            <option value=""></option>
+            {% for place in allPlaces %}
+                <option value="{{ place[0] }}">{{ place[0] }}</option>
+            {% endfor %}
+            <option value="{{ filters['place'] }}" selected hidden>{{ filters["place"] }}</option>
+        </select>
+    </td>
+    <td>
+        <label for="person">Henkilö:</label>
+        <select name="person" form="filters">
+            <option value=""></option>
+            {% for person in allPersons %}
+                <option value="{{ person[0] }}">{{ person[0] }}</option>
+            {% endfor %}
+            <option value="{{ filters['person'] }}" selected hidden>{{ filters["person"] }}</option>
+        </select>
+    </td>
+
+    <td>
+        <label for="keyword">Avainsana:</label>
+        <select name="keyword" form="filters">
+            <option value=""></option>
+            {% for keyword in allKeywords %}
+                <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
+            {% endfor %}
+            <option value="{{ filters['keyword'] }}" selected hidden>{{ filters["keyword"] }}</option>
+        </select>
+    </td>
+</tr>
+<tr>
+    <td>
+        <input type=submit form="filters" value=Päivitä>
+        <input type=submit form="reset" value=Reset>
+    </td>
+</tr>
+</table>
+
 
 <table>
 {% for photo in photos %}

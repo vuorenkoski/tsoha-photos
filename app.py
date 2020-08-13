@@ -21,16 +21,18 @@ def login():
     return render_template("login.html")
 
 @app.route("/login",methods=["POST"])
-def logindata():
+def login_data():
     user = users.get_userdata(request.form["username"])
     if user == None:
-        return render_template("login.html", error="tunnusta ei ole olemassa")
+        return render_template("login.html", message="VIRHE: tunnusta ei ole olemassa")
     if users.check_password(user[2],request.form["password"]):
         session["userid"] = int(user[0])
         session["username"] = user[1]
         session["csrf_token"] = urandom(16).hex()
+        session["filters"] = None
+        session["filtersOthers"] = None
         return redirect("/")
-    return render_template("login.html", error="salasana on väärin")
+    return render_template("login.html", messsage="VIRHE: salasana on väärin")
 
 @app.route("/signup",methods=["GET"])
 def signup():
@@ -38,7 +40,7 @@ def signup():
     return render_template("signup.html")
 
 @app.route("/signup",methods=["POST"])
-def signupdata():
+def signup_data():
     username = request.form["username"]
     password = request.form["password"]
     if username == "" or password == "":
@@ -46,46 +48,49 @@ def signupdata():
     if users.username_exists(username):
         return render_template("signup.html", error="tunnus on jo käytössä")
     id = users.new_user(username,password)
-    session["username"] = username
-    session["userid"] = id
-    session["csrf_token"] = urandom(16).hex()
-    return redirect("/")
+    return render_template("login.html", message="Uusi tunnus luotu")
 
 @app.route("/view", methods=["GET"])
 def view():
     session["page"]="/view"
     if "userid" in session:
-        photodata = photos.get_users_photos(session["userid"])
+        photodata = photos.get_users_photos(session["userid"], f=session["filters"])
         persons = [photos.get_persons(photo[0])[0] for photo in photodata]
         keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
         return render_template("view.html", photos=list(zip(photodata,persons,keywords)), allPlaces=places.get_all_names(), 
-            allKeywords=get_all_keywords(), allPersons=get_all_persons())
+            allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filters"])
     else:
         return render_template("view.html")
 
 @app.route("/view", methods=["POST"])
-def viewdata():
+def view_data():
     if "userid" in session:
-        photodata = photos.get_users_photos(session["userid"], f=request.form)
-        persons = [photos.get_persons(photo[0])[0] for photo in photodata]
-        keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
-        return render_template("view.html", photos=list(zip(photodata,persons,keywords)), allPlaces=places.get_all_names(), 
-            allKeywords=get_all_keywords(), allPersons=get_all_persons(), startdate=request.form["startdate"], enddata=request.form["enddate"],
-            place=request.form["place"], person=request.form["person"], keyword=request.form["keyword"])
-    else:
-        return render_template("view.html")
+        if "reset" in request.form:
+            session["filters"]=None
+        else:
+            session["filters"] = request.form
+    return redirect("/view")
 
 @app.route("/viewothers", methods=["GET"])
 def viewothers():
     session["page"]="/viewothers"
     if "userid" in session:
-        photodata = photos.get_others_photos(session["userid"])
+        photodata = photos.get_others_photos(session["userid"], f=session["filtersOthers"])
         persons = [photos.get_persons(photo[0])[0] for photo in photodata]
         keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
         return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), allPlaces=places.get_all_names(), 
-            allUsers=get_all_users(), allKeywords=get_all_keywords(), allPersons=get_all_persons())
+            allUsers=get_all_users(), allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filtersOthers"])
     else:
         return render_template("viewothers.html")
+
+@app.route("/viewothers", methods=["POST"])
+def viewothers_data():
+    if "userid" in session:
+        if "reset" in request.form:
+            session["filtersOthers"]=None
+        else:
+            session["filtersOthers"] = request.form
+    return redirect("/viewothers")
 
 @app.route("/upload", methods=["GET"])
 def upload_photo():
@@ -93,7 +98,7 @@ def upload_photo():
     return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons())
 
 @app.route("/upload", methods=["POST"])
-def upload_photodata():
+def upload_photo_data():
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     images = request.files.getlist("photo")
@@ -145,7 +150,7 @@ def addinfo(id):
         public=public, permissionstr=permissionstr, permissions=permissions, users=get_all_users(), previousPage=previousPage)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
-def addinfodata(id):
+def addinfo_data(id):
     if not users.check_permission_to_modify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     exitPage = True
@@ -192,7 +197,7 @@ def remove(id):
     return render_template("remove.html", photo_id=id)
 
 @app.route("/remove/<int:id>", methods=["POST"])
-def removedata(id):
+def remove_data(id):
     if not users.check_permission_to_modify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     if request.form["removephoto"]==session["csrf_token"]:
@@ -215,7 +220,7 @@ def place(id):
     return render_template("place.html", place_id=id, place=place[0], city=place[1], country=place[2], region=place[3], wwwpage=place[4])
 
 @app.route("/place/<int:id>", methods=["POST"])
-def placedata(id):
+def place_data(id):
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     places.update(id, request.form["country"], request.form["region"], request.form["city"], request.form["wwwpage"])

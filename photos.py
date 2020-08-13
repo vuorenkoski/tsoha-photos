@@ -11,47 +11,60 @@ app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 
 def get_users_photos(user_id, f = None):
-    values = dict({"user_id":user_id})
-    filters = ["kayttaja_id=:user_id"]
+    values, filters = set_filters(user_id, f)
+    values["user_id"] = user_id
+    sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id FROM photos_valokuvat " \
+        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE kayttaja_id=:user_id " + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
+    result = db.session.execute(sql, values).fetchall()
+    return result
+
+def get_others_photos(user_id, f = None):
+    values, filters = set_filters(user_id, f)
+    values["user_id"] = user_id
+    sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
+        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
+        "WHERE photos_valokuvat.id IN (SELECT photos_valokuvat.id " \
+        "FROM photos_valokuvat LEFT JOIN photos_oikeudet ON valokuva_id=photos_valokuvat.id " \
+        "WHERE photos_oikeudet.kayttaja_id=:user_id OR julkinen=true AND photos_valokuvat.kayttaja_id!=:user_id) " \
+        "" + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
+    result = db.session.execute(sql, values).fetchall()
+    return result
+
+def set_filters(user_id, f):
+    values = dict()
+    filters = []
     if f!=None:
         if f["startdate"]!="":
             values["startdate"]=f["startdate"]
-            filters.append("kuvausaika>=:startdate")
+            filters.append("AND photos_valokuvat.kuvausaika>=:startdate")
         if f["enddate"]!="":
             values["enddate"]=f["enddate"]+" 23:59"
-            filters.append("kuvausaika<=:enddate")
+            filters.append("AND photos_valokuvat.kuvausaika<=:enddate")
         if f["place"]!="":
             sql = "SELECT id FROM photos_paikat WHERE paikka=:place"
             result = db.session.execute(sql, {"place":f["place"]}).fetchone()
             if result!=None:
                 values["place_id"]=result[0]
-                filters.append("paikka_id=:place_id")
+                filters.append("AND photos_valokuvat.paikka_id=:place_id")
         if f["person"]!="":
             sql = "SELECT id FROM photos_henkilot WHERE nimi=:person"
             result = db.session.execute(sql, {"person":f["person"]}).fetchone()
             if result!=None:
                 values["person_id"]=result[0]
-                filters.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id)")
+                filters.append("AND photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id)")
         if f["keyword"]!="":
             sql = "SELECT id FROM photos_avainsanat WHERE avainsana=:keyword"
             result = db.session.execute(sql, {"keyword":f["keyword"]}).fetchone()
             if result!=None:
                 values["keyword_id"]=result[0]
-                filters.append("photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienavainsanat WHERE avainsana_id=:keyword_id)")
-
-    sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id FROM photos_valokuvat " \
-        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id WHERE " + " AND ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
-    result = db.session.execute(sql, values).fetchall()
-    return result
-
-def get_others_photos(user_id):
-    sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
-        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
-        "WHERE photos_valokuvat.id IN (SELECT photos_valokuvat.id " \
-        "FROM photos_valokuvat LEFT JOIN photos_oikeudet ON valokuva_id=photos_valokuvat.id " \
-        "WHERE photos_oikeudet.kayttaja_id=:user_id OR julkinen=true AND photos_valokuvat.kayttaja_id!=:user_id)  ORDER BY kuvausaika ASC NULLS FIRST"
-    result = db.session.execute(sql, {"user_id":user_id}).fetchall()
-    return result
+                filters.append("AND photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienavainsanat WHERE avainsana_id=:keyword_id)")    
+        if "owner" in f and f["owner"]!="":
+            sql = "SELECT id FROM photos_kayttajat WHERE tunnus=:owner"
+            result = db.session.execute(sql, {"owner":f["owner"]}).fetchone()
+            if result!=None:
+                values["owner_id"]=result[0]
+                filters.append("AND photos_valokuvat.kayttaja_id=:owner_id") 
+    return (values,filters)
 
 def save_photo(user_id, photo, place_id, photographer_id):
     image = Image.open(photo)
