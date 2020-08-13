@@ -19,10 +19,13 @@ Toteutetut toiminnallisuudet:
 - muiden jakamien kuvien katselu
 - kuvan tietojen päivittäminen
 - paikkojen tietojen päivittäminen
+- Kuvien selaamiseen toiminnallisuus, jolla voi rajata listalle tulevat kuvat päivämäärän, paikan, avainsanojen ja/tai kuvassa esiintyvän henkilön mukaan.
 
 Sovelluksesta vielä puutuu:
 
-- Kuvien selaamiseen toiminnallisuus, jolla voi rajata listalle tulevat kuvat päivämäärän, paikan, avainsanojen ja/tai kuvassa esiintyvän henkilön mukaan.
+- kuvien lukumäärän näyttäminen
+- useamman kuvaan lataamisessa "xx ladattu onnistuneesti"
+- kunnolliset ohjeet
 - Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja ja muita tietoja
 - Ulkoasun virittäminen paremmaksi
 
@@ -33,7 +36,7 @@ Sovellukseen voi testaamista varten voi luoda oman tunnuksen.
 
 ### Heroku
 
-Herokussa voi testata osoitteessa: https://tsoha-photos.herokuapp.com/. Ongelmana tässä on se, että jpg kuvat tallennetaan sql taulukkoon, joka jostain syystä tyhjenee lyhyen ajan päästä. Sovellus toimii muuten herokussa ok, mutta kuvat sis poistuvat jonkun ajan kuluttua.
+Herokussa voi testata osoitteessa: https://tsoha-photos.herokuapp.com/. 
 
 ### Omalla palvelimella
 
