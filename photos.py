@@ -3,6 +3,7 @@ from db import db, add_person_todb, add_keyword_todb
 from io import BytesIO
 from PIL import Image
 from flask import make_response
+import os
 
 PHOTO_SIZE = (1600,800)
 PHOTO_THUMB_SIZE = (100,100)
@@ -139,10 +140,10 @@ def get_image(filename):
 
 def get_place(photo_id):
     sql = "SELECT paikka FROM photos_valokuvat LEFT JOIN photos_paikat ON photos_valokuvat.paikka_id=photos_paikat.id WHERE photos_valokuvat.id=:photo_id"
-    paikka = db.session.execute(sql, {"photo_id":photo_id}).fetchone()[0]
-    if paikka==None:
-        paikka=""
-    return paikka
+    place = db.session.execute(sql, {"photo_id":photo_id}).fetchone()[0]
+    if place==None:
+        place = ""
+    return place
 
 def add_person(photo_id, person):
     person_id = add_person_todb(person)
@@ -206,4 +207,11 @@ def remove(photo_id):
     db.session.execute(sql, {"photo_id":photo_id})
     sql = "DELETE FROM photos_oikeudet WHERE valokuva_id=:photo_id"
     db.session.execute(sql, {"photo_id":photo_id})
+
+    for filename in ["photo"+str(photo_id)+".jpg", "photo"+str(photo_id)+"_thmb.jpg"]:
+        if USE_PSQL_STORAGE_FOR_JPG:
+            sql = "DELETE FROM photos_jpgkuva WHERE tiedostonimi=:filename"
+            db.session.execute(sql, {"filename":filename})
+        else:
+            os.remove(app.config["UPLOAD_FOLDER"] + filename)
     db.session.commit()
