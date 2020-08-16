@@ -2,7 +2,7 @@ from app import app
 from db import db, add_person_todb, add_keyword_todb
 from io import BytesIO
 from PIL import Image
-from flask import make_response
+from flask import make_response, send_from_directory
 import os, re
 
 PHOTO_SIZE = (1600,800)

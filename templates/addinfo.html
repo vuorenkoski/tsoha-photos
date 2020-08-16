@@ -2,7 +2,6 @@
 {% block title %}Muuta kuvan tietoja{% endblock %}
 
 {% block content %}
-<img src="/photos/photo{{ photo_id }}.jpg" height="300">
 <form action="/addinfo/{{ photo_id }}" method="POST">
 
     <datalist id="All persons">
@@ -20,6 +19,57 @@
             <option value="{{ place[0] }}">
         {% endfor %}
     </datalist>
+
+    <table>
+        <tr>
+            <td>
+                <img src="/photos/photo{{ photo_id }}.jpg" height="300">
+            </td>
+            <td>
+                <p>Valokuvan henkilöt: <b>{{ personstr }}</b><br>
+                    <input list="All persons" name="addPerson">
+                    <input type="submit" value="Lisää henkilö"><br>
+                    <select list="Photo persons" name="removePerson">
+                        <option value=""></option>
+                        {% for person in persons %}
+                            <option value="{{ person[0] }}">{{ person[0] }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Poista henkilö">
+                </p>
+            
+                <p>Valokuvan avainsanat: <b>{{ keywordstr }}</b><br>
+                    <input list="All keywords" name="addKeyword">
+                    <input type="submit" value="Lisää avainsana"><br>
+                    <select list="Photo keywords" name="removeKeyword">
+                        <option value=""></option>
+                        {% for keyword in keywords %}
+                            <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Poista avainsana">
+                </p>
+            
+                <p>Valokuvan katseluoikeudet: <b>{{ permissionstr }}</b><br>
+                    <select list="All users" name="addPermission">
+                        <option value=""></option>
+                        {% for user in users %}
+                            <option value="{{ user[0] }}">{{ user[0] }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Lisää oikeus"><br>
+                    <select list="Photo permissions" name="removePermission">
+                        <option value=""></option>
+                        {% for user in permissions %}
+                            <option value="{{ user[0] }}">{{ user[0] }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Poista oikeus">
+                </p>
+            </td>
+        </tr>
+    </table>
+
 
     <table>
         <tr>
@@ -51,52 +101,8 @@
                 <input list="All places" name="place" value="{{ place }}">
             </td>
         </tr>
-        
     </table>
 
-
-    <p>Valokuvan henkilöt: <b>{{ personstr }}</b><br>
-        <input list="All persons" name="addPerson">
-        <input type="submit" value="Lisää henkilö"><br>
-        <select list="Photo persons" name="removePerson">
-            <option value=""></option>
-            {% for person in persons %}
-                <option value="{{ person[0] }}">{{ person[0] }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Poista henkilö">
-    </p>
-
-    <p>Valokuvan avainsanat: <b>{{ keywordstr }}</b><br>
-        <input list="All keywords" name="addKeyword">
-        <input type="submit" value="Lisää avainsana"><br>
-        <select list="Photo keywords" name="removeKeyword">
-            <option value=""></option>
-            {% for keyword in keywords %}
-                <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Poista avainsana">
-    </p>
-
-    <p>Valokuvan katseluoikeudet: <b>{{ permissionstr }}</b><br>
-        <select list="All users" name="addPermission">
-            <option value=""></option>
-            {% for user in users %}
-                <option value="{{ user[0] }}">{{ user[0] }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Lisää oikeus"><br>
-        <select list="Photo permissions" name="removePermission">
-            <option value=""></option>
-            {% for user in permissions %}
-                <option value="{{ user[0] }}">{{ user[0] }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Poista oikeus">
-    </p>
-
-    
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <input type="hidden" name="previousPage" value="{{ previousPage }}">
 

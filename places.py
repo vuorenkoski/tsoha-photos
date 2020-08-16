@@ -13,11 +13,11 @@ def add(place):
     return place_id[0]
 
 def get_all_names():
-    sql = "SELECT paikka FROM photos_paikat ORDER BY paikka ASC "
+    sql = "SELECT paikka FROM photos_paikat ORDER BY paikka ASC"
     return db.session.execute(sql).fetchall()
 
 def get_all():
-    sql = "SELECT id,paikka, maa, alue, kaupunki, wwwviite FROM photos_paikat"
+    sql = "SELECT id,paikka, maa, alue, kaupunki, wwwviite FROM photos_paikat ORDER BY paikka ASC"
     return db.session.execute(sql).fetchall()
 
 def get_attributes(place_id):
