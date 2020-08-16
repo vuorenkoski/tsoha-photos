@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
+from flask import Flask, request, session, render_template, redirect
 from os import getenv, path, urandom
 
 import re
@@ -250,3 +250,8 @@ def logout():
     del session["csrf_token"]
     session["page"]="/logout"
     return redirect("/")
+
+@app.route("/help")
+def help():
+    session["page"]="/help"
+    return render_template("help.html")
