@@ -3,7 +3,7 @@ from db import db, add_person_todb, add_keyword_todb
 from io import BytesIO
 from PIL import Image
 from flask import make_response
-import os
+import os, re
 
 PHOTO_SIZE = (1600,800)
 PHOTO_THUMB_SIZE = (100,100)
@@ -70,9 +70,9 @@ def set_filters(user_id, f):
 def save_photo(user_id, photo, place_id, photographer_id):
     image = Image.open(photo)
     image.thumbnail(PHOTO_SIZE)
-    if image._getexif()!=None and (36867 in image._getexif()):
+    if image._getexif()!=None and (36867 in image._getexif()) and re.match(r"\d\d\d\d:\d\d:\d\d \d\d:\d\d:\d\d", image._getexif()[36867]):
         datetime=image._getexif()[36867]
-        datetime=datetime[0:4]+"-"+datetime[5:7]+"-"+datetime[8:] # exif standardi YYYY:MMM:DD HH:MM:SS
+        datetime=datetime[0:4]+"-"+datetime[5:7]+"-"+datetime[8:] # exif standardi YYYY:MM:DD HH:MM:SS
     else:
         datetime=None
     sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus, julkinen, paikka_id, valokuvaaja_id) " \
