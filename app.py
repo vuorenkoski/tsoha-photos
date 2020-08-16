@@ -58,7 +58,7 @@ def view():
         persons = [photos.get_persons(photo[0])[0] for photo in photodata]
         keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
         return render_template("view.html", photos=list(zip(photodata,persons,keywords)), allPlaces=places.get_all_names(), 
-            allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filters"])
+            allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filters"], count=len(photodata))
     else:
         return render_template("view.html")
 
@@ -110,10 +110,12 @@ def upload_photo_data():
             return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
         id = photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
     else:
+        count=0
         for image in images:
             if image.filename.lower().endswith(".jpg"):
+                count+=1
                 photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
-        return redirect("/upload")
+        return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons(), message="Ladattiin "+str(count)+" kuvaa")
     return redirect("/addinfo/"+str(id))
 
 @app.route("/addinfo/<int:id>", methods=["GET"])

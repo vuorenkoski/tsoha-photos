@@ -20,12 +20,10 @@ Toteutetut toiminnallisuudet:
 - kuvan tietojen päivittäminen
 - paikkojen tietojen päivittäminen
 - Kuvien selaamiseen toiminnallisuus, jolla voi rajata listalle tulevat kuvat päivämäärän, paikan, avainsanojen ja/tai kuvassa esiintyvän henkilön mukaan.
+- käyttöohjeet
 
 Sovelluksesta vielä puutuu:
 
-- kuvien lukumäärän näyttäminen
-- useamman kuvaan lataamisessa "xx ladattu onnistuneesti"
-- kunnolliset ohjeet
 - Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja ja muita tietoja
 - Ulkoasun virittäminen paremmaksi
 
@@ -33,15 +31,7 @@ Sovelluksesta vielä puutuu:
 
 Sovellukseen voi testaamista varten voi luoda oman tunnuksen.
 
-
-### Heroku
-
 Herokussa voi testata osoitteessa: https://tsoha-photos.herokuapp.com/. 
-
-### Omalla palvelimella
-
-Sovelusta voi testata myös omalta palvelimeltani: https://www.vuorenkoski.fi:7443/
-
 
 ## Tietokantataulukot
 
