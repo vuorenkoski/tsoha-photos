@@ -31,7 +31,7 @@ def login_data():
         session["csrf_token"] = urandom(16).hex()
         session["filters"] = None
         session["filtersOthers"] = None
-        return redirect("/")
+        return redirect("/view")
     return render_template("login.html", messsage="VIRHE: salasana on väärin")
 
 @app.route("/signup",methods=["GET"])

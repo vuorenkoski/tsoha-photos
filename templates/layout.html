@@ -9,15 +9,18 @@
 </head>
 
 <body>
-<h1>Photos -sovellus</h1>
+<h1><center>Photos -sovellus</center></h1>
 
 {% if session.username %}
-<table style="width:100%">
+<table>
 <tr>
-<td style="width:20%">Kirjautunut: {{ session.username }}</td>
-<td style="width:20%"><a href="/">Etusivu</a></td>
-<td style="width:20%"><a href="/logout">Kirjaudu ulos</a></td>
-<td style="width:40%"></td>
+<td>Käyttäjä: {{ session.username }}</td>
+<td><a href="/view">Omat kuvat</a></td>
+<td><a href="/viewothers">Muiden kuvat</a></td>
+<td><a href="/places">Paikat</a></td>
+<td><a href="/upload">Lisää</a></td>
+<td><a href="/help">Ohje</a></td>
+<td><a href="/logout">Kirjaudu ulos</a></td>
 </tr>
 </table>
 {% else %}
