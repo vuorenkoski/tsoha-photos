@@ -2,7 +2,6 @@
 {% block title %}Katsele paikan tietoja{% endblock %}
 
 {% block content %}
-{% if session.username %}
 <hr>
 <h3>{{ place }}</h3>
 
@@ -11,6 +10,7 @@
 <p>Maa: {{ country }}</p>
 <p>WWW-sivu: <a href="{{ wwwpage }}">{{ wwwpage }}</a></p>
 
+{% if session.username %}
 <a href="/place/{{ place_id }}">Muokkaa</a>
 {% endif %}
 

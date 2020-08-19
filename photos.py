@@ -21,13 +21,16 @@ def get_users_photos(user_id, f = None):
 
 def get_others_photos(user_id, f = None):
     values, filters = set_filters(user_id, f)
-    values["user_id"] = user_id
-    sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
-        "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
-        "WHERE photos_valokuvat.id IN (SELECT photos_valokuvat.id " \
-        "FROM photos_valokuvat LEFT JOIN photos_oikeudet ON valokuva_id=photos_valokuvat.id " \
-        "WHERE photos_oikeudet.kayttaja_id=:user_id OR julkinen=true AND photos_valokuvat.kayttaja_id!=:user_id) " \
-        "" + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
+    if user_id==None:
+        sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
+            "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
+            "WHERE julkinen=true " + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
+    else:
+        values["user_id"] = user_id
+        sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
+            "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
+            "WHERE (julkinen=true OR photos_valokuvat.id IN (SELECT valokuva_id FROM photos_oikeudet " \
+            "WHERE kayttaja_id=:user_id)) " + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
     result = db.session.execute(sql, values).fetchall()
     return result
 

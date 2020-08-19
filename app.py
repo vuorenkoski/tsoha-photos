@@ -76,20 +76,19 @@ def viewothers():
     session["page"]="/viewothers"
     if "userid" in session:
         photodata = photos.get_others_photos(session["userid"], f=session["filtersOthers"])
-        persons = [photos.get_persons(photo[0])[0] for photo in photodata]
-        keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
-        return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), allPlaces=places.get_all_names(), 
-            allUsers=get_all_users(), allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filtersOthers"])
     else:
-        return render_template("viewothers.html")
+        photodata = photos.get_others_photos(None, f=session["filtersOthers"])
+    persons = [photos.get_persons(photo[0])[0] for photo in photodata]
+    keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
+    return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), allPlaces=places.get_all_names(), 
+        allUsers=get_all_users(), allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filtersOthers"])
 
 @app.route("/viewothers", methods=["POST"])
 def viewothers_data():
-    if "userid" in session:
-        if "reset" in request.form:
-            session["filtersOthers"]=None
-        else:
-            session["filtersOthers"] = request.form
+    if "reset" in request.form:
+        session["filtersOthers"]=None
+    else:
+        session["filtersOthers"] = request.form
     return redirect("/viewothers")
 
 @app.route("/upload", methods=["GET"])
@@ -230,8 +229,6 @@ def place_data(id):
 
 @app.route("/placeinfo/<int:id>", methods=["GET"])
 def placeinfo(id):
-    if not "userid" in session:
-        return "Ei oikeuksia"
     place = places.get_attributes(id)
     session["page"]="/placeinfo"
     return render_template("placeinfo.html", place_id=id, place=place[0], city=place[1], country=place[2], region=place[3], wwwpage=place[4])

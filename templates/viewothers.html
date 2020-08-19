@@ -2,7 +2,6 @@
 {% block title %}Muiden käyttäjien valokuvat{% endblock %}
 {% block content %}
 
-{% if session.username %}
 <form action="/viewothers" method="POST" id="filters"></form>
 <form action="/viewothers" method="POST" id="reset">
     <input type="hidden" name="reset" value="reset">
@@ -95,5 +94,4 @@
     
     </table>
     
-    {% endif %}
     {% endblock %}
