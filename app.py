@@ -279,6 +279,9 @@ def remove_user_data(id):
         return "Ei oikeuksia"
     if request.form["removeuser"]==session["csrf_token"]:
         users.remove(id)
+        userphotos = photos.get_users_photos(id)
+        for photo in userphotos:
+            photos.remove(photo[0])
     return redirect("/admin")
 
 @app.route("/admin/resetpassword/<int:id>", methods=["GET"])

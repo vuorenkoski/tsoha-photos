@@ -68,8 +68,4 @@ def get_all_data():
 def remove(userid):
     sql = "DELETE FROM photos_kayttajat WHERE id=:id"
     db.session.execute(sql, {"id":userid})
-    sql = "DELETE FROM photos_valokuvat WHERE kayttaja_id=:id"
-    db.session.execute(sql, {"id":userid})
-    sql = "DELETE FROM photos_oikeudet WHERE kayttaja_id=:id"
-    db.session.execute(sql, {"id":userid})
     db.session.commit()
