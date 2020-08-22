@@ -28,3 +28,13 @@ def update(place_id, country, region, city, wwwpage):
     sql = "UPDATE photos_paikat SET kaupunki=:city, maa=:country, alue=:region, wwwviite=:wwwpage WHERE id=:id"
     db.session.execute(sql, {"id":place_id, "country":country, "region":region, "city":city, "wwwpage":wwwpage})
     db.session.commit()
+
+def count(place_id):
+    sql = "SELECT count(id) FROM photos_valokuvat WHERE paikka_id=:place_id"
+    return db.session.execute(sql, {"place_id":place_id}).fetchone()[0]
+
+def remove(place_id):
+    if count(place_id)==0:
+        sql = "DELETE FROM photos_paikat WHERE id=:id"
+        db.session.execute(sql, {"id":place_id})
+        db.session.commit()

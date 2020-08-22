@@ -46,6 +46,8 @@ def signup_data():
     password = request.form["password"]
     if username == "" or password == "":
         return render_template("signup.html", error="tunnus tai salasana ei voi olla tyhjä")
+    if len(username)>10:
+        return render_template("signup.html", error="Käyttäjänimi on liian pitkä")
     if users.username_exists(username):
         return render_template("signup.html", error="tunnus on jo käytössä")
     id = users.new_user(username,password)
@@ -213,7 +215,9 @@ def placelist():
     if not "userid" in session:
         return "Ei oikeuksia"
     session["page"]="/places"
-    return render_template("places.html", places=places.get_all())
+    placesdata = places.get_all()
+    counts = [places.count(place[0]) for place in placesdata]
+    return render_template("places.html", places=list(zip(placesdata,counts)))
 
 @app.route("/place/<int:id>", methods=["GET"])
 def place(id):
@@ -305,3 +309,11 @@ def reset_password_data(id):
         return redirect("/admin")
     return "Ei oikeuksia"
 
+@app.route("/admin/removeplace", methods=["POST"])
+def remove_place_data():
+    if session["admin"] and session["csrf_token"]==request.form["csrf_token"]:
+        if places.count(request.form["placeid"])>0:
+            return "Mikään kuva ei voi olla merkitty poistettavaan paikkaan"
+        places.remove(request.form["placeid"])
+        return redirect("/places")
+    return "Ei oikeuksia"

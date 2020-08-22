@@ -7,16 +7,25 @@
 {% for place in places %}
 <tr>
     <td>
-        <b>Paikka: {{ place[1] }} </b><br>
-        Kaupunki: {{ place[4] }} <br>
+        <b>Paikka: {{ place[0][1] }} </b><br>
+        Kaupunki: {{ place[0][4] }} <br>
     </td>
     <td>
-        Maa: {{ place[2] }} <br>
-        Alue: {{ place[3] }} <br>
+        Maa: {{ place[0][2] }} <br>
+        Alue: {{ place[0][3] }} <br>
     </td>
     <td>
-        www-osoite: {{ place[5] }} <br>
-        <a href="/place/{{ place[0] }}">Muokkaa tietoja</a> <br>
+        www-osoite: {{ place[0][5] }} <br>
+        Valokuvia: {{ place[1] }} <br>
+    </td>
+    <td>
+        <a href="/place/{{ place[0][0] }}">Muokkaa tietoja</a> <br>
+        {% if session.admin==true %}
+        <form action="/admin/removeplace" method="post">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit" name="placeid" value="{{ place[0][0] }}">Poista</button>
+        </form>
+        {% endif %}
     </td>
 </tr>
 {% endfor %}
