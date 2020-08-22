@@ -29,7 +29,7 @@ def get_others_photos(user_id, f = None):
         values["user_id"] = user_id
         sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
             "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
-            "WHERE (julkinen=true OR photos_valokuvat.id IN (SELECT valokuva_id FROM photos_oikeudet " \
+            "WHERE ((julkinen=true AND photos_valokuvat.kayttaja_id!=:user_id) OR photos_valokuvat.id IN (SELECT valokuva_id FROM photos_oikeudet " \
             "WHERE kayttaja_id=:user_id)) " + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
     result = db.session.execute(sql, values).fetchall()
     return result
