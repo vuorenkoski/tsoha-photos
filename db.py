@@ -36,7 +36,3 @@ def get_all_persons():
 def get_all_keywords():
     sql = "SELECT avainsana FROM photos_avainsanat ORDER BY avainsana ASC "
     return db.session.execute(sql).fetchall()
-
-def get_all_users():
-    sql = "SELECT tunnus FROM photos_kayttajat ORDER BY tunnus ASC "
-    return db.session.execute(sql).fetchall()

@@ -20,6 +20,13 @@
 <tr><td>
     <a href="/help">Käyttöohje</a>
 </td></tr>
+
+{% if session.admin == true %}
+<tr><td>
+    <a href="/admin">Admin</a>
+</td></tr>
+{% endif %}
+
 </table>
 
 <p></p>

@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block title %}Poista käyttäjä{% endblock %}
+
+{% block content %}
+
+<p>id: {{ userdata[0] }}</p> 
+<p>tunnus: {{ userdata[1] }}</p> 
+<p>admin: {{ userdata[3] }}</p> 
+
+<br><br>
+Oletko varma että haluat poistaa tämän kuvan?
+<form action="/admin/removeuser/{{ userdata[0] }}" method="POST">
+<input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+<input type="hidden" name="removeuser" value="{{ session.csrf_token }}">
+<input type="submit" value="Kyllä">
+</form>
+<br>
+<a href="/admin">Palaa takaisin</a>
+
+{% endblock %}

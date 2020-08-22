@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Käyttäjähallinta{% endblock %}
+{% block content %}
+
+Käyttäjiä: {{ count }}
+<table>
+{% for user in users %}
+<tr>
+    <td>
+        Käyttäjä: {{ user[1] }}
+    </td>
+    <td>
+        Valokuvia: {{ user[2] }}
+    </td>
+    <td>
+        <a href="/admin/removeuser/{{ user[0] }}">Poista käyttäjä</a><br>
+        <a href="/admin/resetpassword/{{ user[0] }}">Vaihda salasana</a><br>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}

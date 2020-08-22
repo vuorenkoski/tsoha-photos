@@ -1,14 +1,14 @@
 from flask import Flask, request, session, render_template, redirect
 from os import getenv, path, urandom
-
 import re
-parse_photoid = re.compile(r"photo(\d+)(_thmb)?\.jpg\Z")
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
 
-from db import db, get_all_persons, get_all_keywords, get_all_users, add_person_todb
+from db import db, get_all_persons, get_all_keywords, add_person_todb
 import users, photos, places
+
+parse_photoid = re.compile(r"photo(\d+)(_thmb)?\.jpg\Z")
 
 @app.route("/")
 def index():
@@ -22,17 +22,18 @@ def login():
 
 @app.route("/login",methods=["POST"])
 def login_data():
-    user = users.get_userdata(request.form["username"])
+    user = users.get_userdata(username=request.form["username"])
     if user == None:
         return render_template("login.html", message="VIRHE: tunnusta ei ole olemassa")
     if users.check_password(user[2],request.form["password"]):
         session["userid"] = int(user[0])
         session["username"] = user[1]
         session["csrf_token"] = urandom(16).hex()
+        session["admin"] = user[3]
         session["filters"] = None
         session["filtersOthers"] = None
         return redirect("/view")
-    return render_template("login.html", messsage="VIRHE: salasana on väärin")
+    return render_template("login.html", message="VIRHE: salasana on väärin")
 
 @app.route("/signup",methods=["GET"])
 def signup():
@@ -81,7 +82,7 @@ def viewothers():
     persons = [photos.get_persons(photo[0])[0] for photo in photodata]
     keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
     return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), allPlaces=places.get_all_names(), 
-        allUsers=get_all_users(), allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filtersOthers"])
+        allUsers=users.get_all_names(), allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filtersOthers"])
 
 @app.route("/viewothers", methods=["POST"])
 def viewothers_data():
@@ -148,7 +149,7 @@ def addinfo(id):
     return render_template("addinfo.html", photo_id=id, date=date, time=time, 
         description=photo_attributes[2], photographer=photographer, personstr=personstr, persons=persons, allPersons=get_all_persons(), 
         keywordstr=keywordstr, keywords=keywords, allKeywords=get_all_keywords(), place=place, allPlaces=places.get_all_names(), 
-        public=public, permissionstr=permissionstr, permissions=permissions, users=get_all_users(), previousPage=previousPage)
+        public=public, permissionstr=permissionstr, permissions=permissions, users=users.get_all_names(), previousPage=previousPage)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfo_data(id):
@@ -247,6 +248,9 @@ def logout():
     del session["username"]
     del session["userid"]
     del session["csrf_token"]
+    del session["admin"]
+    del session["filters"]
+    del session["filtersOthers"]
     session["page"]="/logout"
     return redirect("/")
 
@@ -254,3 +258,39 @@ def logout():
 def help():
     session["page"]="/help"
     return render_template("help.html")
+
+@app.route("/admin", methods=["GET"])
+def admin():
+    if not "userid" in session or not session["admin"]:
+        return "Ei oikeuksia"
+    session["page"]="/admin"
+    userdata=users.get_all_data()
+    return render_template("admin.html", users=userdata, count=len(userdata))
+
+@app.route("/admin/removeuser/<int:id>", methods=["GET"])
+def remove_user(id):
+    if not session["admin"]:
+        return "Ei oikeuksia"
+    return render_template("removeuser.html", userdata=users.get_userdata(id=id))
+
+@app.route("/admin/removeuser/<int:id>", methods=["POST"])
+def remove_user_data(id):
+    if not session["admin"] or session["csrf_token"] != request.form["csrf_token"]:
+        return "Ei oikeuksia"
+    if request.form["removeuser"]==session["csrf_token"]:
+        users.remove(id)
+    return redirect("/admin")
+
+@app.route("/admin/resetpassword/<int:id>", methods=["GET"])
+def reset_password(id):
+    if not session["admin"]:
+        return "Ei oikeuksia"
+    return render_template("resetpassword.html", userdata=users.get_userdata(id=id))
+
+@app.route("/admin/resetpassword/<int:id>", methods=["POST"])
+def reset_password_data(id):
+    if not session["admin"] or session["csrf_token"] != request.form["csrf_token"]:
+        return "Ei oikeuksia"
+    users.set_password(request.form["newpassword"], id=id)
+    return redirect("/admin")
+

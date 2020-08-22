@@ -20,6 +20,11 @@
 <td><a href="/places">Paikat</a></td>
 <td><a href="/upload">Lisää</a></td>
 <td><a href="/help">Ohje</a></td>
+{% if session.admin == true %}
+<td><a href="/admin">Admin</a></td>
+{% endif %}
+
+
 <td><a href="/logout">Kirjaudu ulos</a></td>
 </tr>
 </table>

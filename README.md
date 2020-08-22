@@ -21,10 +21,10 @@ Toteutetut toiminnallisuudet:
 - paikkojen tietojen päivittäminen
 - Kuvien selaamiseen toiminnallisuus, jolla voi rajata listalle tulevat kuvat päivämäärän, paikan, avainsanojen ja/tai kuvassa esiintyvän henkilön mukaan.
 - käyttöohjeet
+- Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja
 
 Sovelluksesta vielä puutuu:
 
-- Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja ja muita tietoja
 - Ulkoasun virittäminen paremmaksi
 
 ## Sovelluksen testaaminen

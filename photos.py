@@ -197,7 +197,8 @@ def remove_permission(photo_id, username):
         db.session.commit()
 
 def update_attributes(photo_id, datetime, description, photographer_id, place_id, public):
-    sql = "UPDATE photos_valokuvat SET kuvausaika=:datetime, tekstikuvaus=:description, valokuvaaja_id=:photographer_id, paikka_id=:place_id, julkinen=:public WHERE id=:photo_id"
+    sql = "UPDATE photos_valokuvat SET kuvausaika=:datetime, tekstikuvaus=:description, " \
+        "valokuvaaja_id=:photographer_id, paikka_id=:place_id, julkinen=:public WHERE id=:photo_id"
     db.session.execute(sql, {"photo_id":photo_id, "datetime":datetime, "description":description, "photographer_id":photographer_id, "place_id":place_id, "public":public})
     db.session.commit()
 
