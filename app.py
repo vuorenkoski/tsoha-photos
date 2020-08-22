@@ -4,6 +4,7 @@ import re
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
+app.version = "22.8.2020"
 
 from db import db, get_all_persons, get_all_keywords, add_person_todb
 import users, photos, places
@@ -263,7 +264,7 @@ def logout():
 @app.route("/help")
 def help():
     session["page"]="/help"
-    return render_template("help.html")
+    return render_template("help.html", version=app.version)
 
 @app.route("/admin", methods=["GET"])
 def admin():

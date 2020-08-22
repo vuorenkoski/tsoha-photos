@@ -1,6 +1,5 @@
 from db import db
 
-# Lisää paikan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa paikan id numeron.
 def add(place):
     if place=="" or place=="None":
         return None

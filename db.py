@@ -5,7 +5,6 @@ from os import getenv
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 db = SQLAlchemy(app)
 
-# Lisää henkilön tietokantaan jollei sitä ole siellä aiemmin. Palauttaa henkilön id numeron.
 def add_person_todb(name):
     if name=="" or name=="None":
         return None
@@ -17,7 +16,6 @@ def add_person_todb(name):
         db.session.commit()
     return person_id[0]
 
-# Lisää avainsanan tietokantaan jollei sitä ole siellä aiemmin. Palauttaa avainsanan id numeron.
 def add_keyword_todb(keyword):
     if keyword=="" or keyword=="None":
         return None

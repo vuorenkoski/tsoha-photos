@@ -104,7 +104,6 @@ def get_attributes(photo_id):
         "LEFT JOIN photos_henkilot ON photos_valokuvat.valokuvaaja_id=photos_henkilot.id WHERE photos_valokuvat.id=:photo_id"
     return db.session.execute(sql, {"photo_id":photo_id}).fetchone()
 
-# Palauttaa valokuvassa esiintyvät henkilöt
 def get_persons(photo_id):
     sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
     persons = db.session.execute(sql, {"id":photo_id}).fetchall()
@@ -113,7 +112,6 @@ def get_persons(photo_id):
         personstr = "--"
     return (personstr,persons)
 
-# Palauttaa valokuvan avainsanat
 def get_keywords(photo_id):
     sql = "SELECT avainsana FROM photos_avainsanat,photos_valokuvienavainsanat WHERE valokuva_id=:id AND photos_avainsanat.id=avainsana_id"
     keywords = db.session.execute(sql, {"id":photo_id}).fetchall()
@@ -122,7 +120,6 @@ def get_keywords(photo_id):
         keywordstr = "--"
     return (keywordstr,keywords)
 
-# Palauttaa valokuvan oikeudet
 def get_permissions(photo_id):
     sql = "SELECT tunnus FROM photos_oikeudet,photos_kayttajat WHERE valokuva_id=:id AND photos_kayttajat.id=kayttaja_id"
     permissions = db.session.execute(sql, {"id":photo_id}).fetchall()
