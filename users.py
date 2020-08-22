@@ -69,3 +69,7 @@ def remove(userid):
     sql = "DELETE FROM photos_kayttajat WHERE id=:id"
     db.session.execute(sql, {"id":userid})
     db.session.commit()
+
+def isadmin(userid):
+    sql = "SELECT admin FROM photos_kayttajat WHERE id=:userid"
+    return db.session.execute(sql, {"userid":userid}).fetchone()[0]

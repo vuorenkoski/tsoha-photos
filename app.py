@@ -271,12 +271,16 @@ def admin():
 def remove_user(id):
     if not session["admin"]:
         return "Ei oikeuksia"
+    if users.isadmin(id):
+        return "Pääkäyttäjän tunnusta ei voi poistaa"
     return render_template("removeuser.html", userdata=users.get_userdata(id=id))
 
 @app.route("/admin/removeuser/<int:id>", methods=["POST"])
 def remove_user_data(id):
-    if not session["admin"] or session["csrf_token"] != request.form["csrf_token"]:
+    if not session["admin"] or session["csrf_token"]!=request.form["csrf_token"]:
         return "Ei oikeuksia"
+    if users.isadmin(id):
+        return "Pääkäyttäjän tunnusta ei voi poistaa"
     if request.form["removeuser"]==session["csrf_token"]:
         users.remove(id)
         userphotos = photos.get_users_photos(id)
@@ -286,14 +290,16 @@ def remove_user_data(id):
 
 @app.route("/admin/resetpassword/<int:id>", methods=["GET"])
 def reset_password(id):
-    if not session["admin"]:
-        return "Ei oikeuksia"
-    return render_template("resetpassword.html", userdata=users.get_userdata(id=id))
+    if session["admin"] or session["userid"]==id:
+        return render_template("resetpassword.html", userdata=users.get_userdata(id=id), admin=session["admin"] and not users.isadmin(id))
+    return "Ei oikeuksia"
 
 @app.route("/admin/resetpassword/<int:id>", methods=["POST"])
 def reset_password_data(id):
-    if not session["admin"] or session["csrf_token"] != request.form["csrf_token"]:
-        return "Ei oikeuksia"
-    users.set_password(request.form["newpassword"], id=id)
-    return redirect("/admin")
+    if (session["admin"] or session["userid"]==id) and session["csrf_token"]==request.form["csrf_token"]:
+        users.set_password(request.form["newpassword"], id=id)
+        if session["userid"]==id:
+            return redirect("/view")
+        return redirect("/admin")
+    return "Ei oikeuksia"
 

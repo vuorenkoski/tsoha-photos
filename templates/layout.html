@@ -18,11 +18,13 @@
 <td><a href="/view">Omat kuvat</a></td>
 <td><a href="/viewothers">Muiden kuvat</a></td>
 <td><a href="/places">Paikat</a></td>
-<td><a href="/upload">Lisää</a></td>
-<td><a href="/help">Ohje</a></td>
+<td><a href="/upload">Lisää kuva</a></td>
+<td><a href="/admin/resetpassword/{{ session.userid }}">Vaihda salasana</a></td>
+
 {% if session.admin == true %}
 <td><a href="/admin">Admin</a></td>
 {% endif %}
+<td><a href="/help">Ohje</a></td>
 
 
 <td><a href="/logout">Kirjaudu ulos</a></td>

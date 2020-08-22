@@ -4,11 +4,14 @@
 {% block content %}
 
 <p>id: {{ userdata[0] }}</p> 
-<p>tunnus: {{ userdata[1] }}</p> 
-<p>admin: {{ userdata[3] }}</p> 
+<p>tunnus: {{ userdata[1] }}</p>
+
+{% if userdata[3]==true %}
+<p>Pääkäyttäjä</p> 
+{% endif %}
 
 <br><br>
-Oletko varma että haluat poistaa tämän kuvan?
+Oletko varma että haluat poistaa tämän käyttäjän?
 <form action="/admin/removeuser/{{ userdata[0] }}" method="POST">
 <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 <input type="hidden" name="removeuser" value="{{ session.csrf_token }}">
