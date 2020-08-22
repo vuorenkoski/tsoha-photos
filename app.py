@@ -75,6 +75,8 @@ def view_data():
 @app.route("/viewothers", methods=["GET"])
 def viewothers():
     session["page"]="/viewothers"
+    if "filtersOthers" not in session:
+        session["filtersOthers"]=None
     if "userid" in session:
         photodata = photos.get_others_photos(session["userid"], f=session["filtersOthers"])
     else:
