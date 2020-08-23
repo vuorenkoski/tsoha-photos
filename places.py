@@ -1,7 +1,7 @@
 from db import db
 
 def add(place):
-    if place=="" or place=="None":
+    if place=="" or place=="None" or len(place)>30:
         return None
     sql = "SELECT id FROM photos_paikat WHERE LOWER(paikka)=LOWER(:place)"
     place_id = db.session.execute(sql, {"place":place}).fetchone()
