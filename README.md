@@ -1,6 +1,6 @@
 # Valokuvien jakopalvelu
 
-Aineopintojen harjoitustyö: Tietokantasovellus (loppukesä)
+Aineopintojen harjoitustyö: Tietokantasovellus (loppukesä 2020)
 
 ## Idea
 
@@ -8,9 +8,7 @@ Pavelun avulla käyttäjät voivat jakaa ja katsella valokuvia. Valokuviin voi l
 
 ## Sovelluksen nykytilanne
 
-Sovellukseen on toteuttu kaikki päätoiminnallisuudet. Paljon on vielä yksityiskohtia hiottavana.
-
-Toteutetut toiminnallisuudet:
+Sovellukseen on toteuttu kaikki toiminnallisuudet:
 
 - tunnuksen luominen
 - sisään- ja uloskirjautuminen
@@ -22,6 +20,7 @@ Toteutetut toiminnallisuudet:
 - Kuvien selaamiseen toiminnallisuus, jolla voi rajata listalle tulevat kuvat päivämäärän, paikan, avainsanojen ja/tai kuvassa esiintyvän henkilön mukaan.
 - käyttöohjeet
 - Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja
+- salasanan muutaminen
 
 Sovelluksesta vielä puutuu:
 
