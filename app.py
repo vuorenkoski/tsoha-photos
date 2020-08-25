@@ -167,6 +167,8 @@ def addinfo_data(id):
     else:
         datetime = None
     description = request.form["description"]
+    if len(description) > 60:
+        description = description[:60]
     public = "public" in request.form
     photographer_id = add_person_todb(request.form["photographer"])
     place_id = places.add(request.form["place"])

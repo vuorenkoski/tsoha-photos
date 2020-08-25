@@ -147,6 +147,8 @@ def get_place(photo_id):
 
 def add_person(photo_id, person):
     person_id = add_person_todb(person)
+    if person_id == None:
+        return
     sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id AND valokuva_id=:photo_id"
     if db.session.execute(sql, {"person_id":person_id, "photo_id":photo_id}).fetchone()[0] == 0:
         sql = "INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:person_id, :photo_id)"
@@ -163,6 +165,8 @@ def remove_person(photo_id, person):
 
 def add_keyword(photo_id, keyword):
     keyword_id = add_keyword_todb(keyword)
+    if keyword_id == None:
+        return
     sql = "SELECT COUNT(*) FROM photos_valokuvienavainsanat WHERE avainsana_id=:keyword_id AND valokuva_id=:photo_id"
     if db.session.execute(sql, {"keyword_id":keyword_id, "photo_id":photo_id}).fetchone()[0]==0:
         sql = "INSERT INTO photos_valokuvienavainsanat (avainsana_id, valokuva_id) VALUES (:keyword_id, :photo_id)"
