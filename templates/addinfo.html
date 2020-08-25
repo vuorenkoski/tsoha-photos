@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Muuta kuvan tietoja{% endblock %}
+{% block header %}Muuta kuvan tietoja{% endblock %}
 
 {% block content %}
 <form action="/addinfo/{{ photo_id }}" method="POST">
@@ -97,7 +97,7 @@
                 <input type="text" name="description" value="{{ description }}">
             </td>
             <td>
-                <label for="place"></label>Paikka</label>
+                <label for="place">Paikka</label>
                 <input list="All places" name="place" value="{{ place }}">
             </td>
         </tr>

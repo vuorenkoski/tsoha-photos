@@ -4,7 +4,7 @@ import re
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
-app.version = "22.8.2020"
+app.version = "25.8.2020"
 
 from db import db, get_all_persons, get_all_keywords, add_person_todb
 import users, photos, places
@@ -13,12 +13,12 @@ parse_photoid = re.compile(r"photo(\d+)(_thmb)?\.jpg\Z")
 
 @app.route("/")
 def index():
-    session["page"]="/"
+    session["page"] = "/"
     return render_template("index.html")
 
 @app.route("/login",methods=["GET"])
 def login():
-    session["page"]="/login"
+    session["page"] = "/login"
     return render_template("login.html")
 
 @app.route("/login",methods=["POST"])
@@ -56,7 +56,7 @@ def signup_data():
 
 @app.route("/view", methods=["GET"])
 def view():
-    session["page"]="/view"
+    session["page"] = "/view"
     if "userid" in session:
         photodata = photos.get_users_photos(session["userid"], f=session["filters"])
         persons = [photos.get_persons(photo[0])[0] for photo in photodata]
@@ -70,16 +70,16 @@ def view():
 def view_data():
     if "userid" in session:
         if "reset" in request.form:
-            session["filters"]=None
+            session["filters"] = None
         else:
             session["filters"] = request.form
     return redirect("/view")
 
 @app.route("/viewothers", methods=["GET"])
 def viewothers():
-    session["page"]="/viewothers"
+    session["page"] = "/viewothers"
     if "filtersOthers" not in session:
-        session["filtersOthers"]=None
+        session["filtersOthers"] = None
     if "userid" in session:
         photodata = photos.get_others_photos(session["userid"], f=session["filtersOthers"])
     else:
@@ -92,14 +92,14 @@ def viewothers():
 @app.route("/viewothers", methods=["POST"])
 def viewothers_data():
     if "reset" in request.form:
-        session["filtersOthers"]=None
+        session["filtersOthers"] = None
     else:
         session["filtersOthers"] = request.form
     return redirect("/viewothers")
 
 @app.route("/upload", methods=["GET"])
 def upload_photo():
-    session["page"]="/upload"
+    session["page"] = "/upload"
     return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons())
 
 @app.route("/upload", methods=["POST"])
@@ -107,7 +107,7 @@ def upload_photo_data():
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     images = request.files.getlist("photo")
-    if len(images)==1:
+    if len(images) == 1:
         image = images[0]
         if image.filename == "":
             return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
@@ -115,10 +115,10 @@ def upload_photo_data():
             return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
         id = photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
     else:
-        count=0
+        count = 0
         for image in images:
             if image.filename.lower().endswith(".jpg"):
-                count+=1
+                count += 1
                 photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
         return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons(), message="Ladattiin "+str(count)+" kuvaa")
     return redirect("/addinfo/"+str(id))
@@ -129,7 +129,7 @@ def addinfo(id):
         return "Ei oikeuksia"
 
     photo_attributes = photos.get_attributes(id)
-    if photo_attributes[1]==None:
+    if photo_attributes[1] == None:
         photographer = ""
     else:
         photographer = photo_attributes[1]
@@ -144,7 +144,7 @@ def addinfo(id):
     place = photos.get_place(id)
     permissionstr,permissions = photos.get_permissions(id)
     previousPage = session["page"]
-    session["page"]="/addinfo"
+    session["page"] = "/addinfo"
     if photo_attributes[0]!=None:
         date = photo_attributes[0].strftime("%Y-%m-%d")
         time = photo_attributes[0].strftime("%H:%M")
@@ -168,8 +168,8 @@ def addinfo_data(id):
         datetime = None
     description = request.form["description"]
     public = "public" in request.form
-    photographer_id=add_person_todb(request.form["photographer"])
-    place_id=places.add(request.form["place"])
+    photographer_id = add_person_todb(request.form["photographer"])
+    place_id = places.add(request.form["place"])
 
     if request.form["addPerson"]!="":
         photos.add_person(id, request.form["addPerson"])
@@ -191,7 +191,7 @@ def addinfo_data(id):
         exitPage = False
     photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
     if exitPage:
-        if request.form["previousPage"]=="/upload":
+        if request.form["previousPage"] == "/upload":
             return redirect("/upload") 
         return redirect("/view")
     else:
@@ -215,7 +215,7 @@ def remove_data(id):
 def placelist():
     if not "userid" in session:
         return "Ei oikeuksia"
-    session["page"]="/places"
+    session["page"] = "/places"
     placesdata = places.get_all()
     counts = [places.count(place[0]) for place in placesdata]
     return render_template("places.html", places=list(zip(placesdata,counts)))
@@ -225,7 +225,7 @@ def place(id):
     if not "userid" in session:
         return "Ei oikeuksia"
     place = places.get_attributes(id)
-    session["page"]="/places"
+    session["page"] = "/places"
     return render_template("place.html", place_id=id, place=place[0], city=place[1], country=place[2], region=place[3], wwwpage=place[4])
 
 @app.route("/place/<int:id>", methods=["POST"])
@@ -238,13 +238,13 @@ def place_data(id):
 @app.route("/placeinfo/<int:id>", methods=["GET"])
 def placeinfo(id):
     place = places.get_attributes(id)
-    session["page"]="/placeinfo"
+    session["page"] = "/placeinfo"
     return render_template("placeinfo.html", place_id=id, place=place[0], city=place[1], country=place[2], region=place[3], wwwpage=place[4])
 
 @app.route("/photos/<filename>")
 def show_photo(filename):
     r = parse_photoid.match(filename)
-    if r!=None:
+    if r != None:
         if not users.check_permission_to_view(session, int(r.group(1))):
             return "Ei oikeuksia"
         return photos.get_image(filename)
@@ -263,15 +263,15 @@ def logout():
 
 @app.route("/help")
 def help():
-    session["page"]="/help"
+    session["page"] = "/help"
     return render_template("help.html", version=app.version)
 
 @app.route("/admin", methods=["GET"])
 def admin():
     if not "userid" in session or not session["admin"]:
         return "Ei oikeuksia"
-    session["page"]="/admin"
-    userdata=users.get_all_data()
+    session["page"] = "/admin"
+    userdata = users.get_all_data()
     return render_template("admin.html", users=userdata, count=len(userdata))
 
 @app.route("/admin/removeuser/<int:id>", methods=["GET"])
@@ -284,7 +284,7 @@ def remove_user(id):
 
 @app.route("/admin/removeuser/<int:id>", methods=["POST"])
 def remove_user_data(id):
-    if not session["admin"] or session["csrf_token"]!=request.form["csrf_token"]:
+    if not session["admin"] or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     if users.isadmin(id):
         return "Pääkäyttäjän tunnusta ei voi poistaa"
@@ -297,22 +297,22 @@ def remove_user_data(id):
 
 @app.route("/admin/resetpassword/<int:id>", methods=["GET"])
 def reset_password(id):
-    if session["admin"] or session["userid"]==id:
+    if session["admin"] or session["userid"] == id:
         return render_template("resetpassword.html", userdata=users.get_userdata(id=id), admin=session["admin"] and not users.isadmin(id))
     return "Ei oikeuksia"
 
 @app.route("/admin/resetpassword/<int:id>", methods=["POST"])
 def reset_password_data(id):
-    if (session["admin"] or session["userid"]==id) and session["csrf_token"]==request.form["csrf_token"]:
+    if (session["admin"] or session["userid"] == id) and session["csrf_token"]==request.form["csrf_token"]:
         users.set_password(request.form["newpassword"], id=id)
-        if session["userid"]==id:
+        if session["userid"] == id:
             return redirect("/view")
         return redirect("/admin")
     return "Ei oikeuksia"
 
 @app.route("/admin/removeplace", methods=["POST"])
 def remove_place_data():
-    if session["admin"] and session["csrf_token"]==request.form["csrf_token"]:
+    if session["admin"] and session["csrf_token"] == request.form["csrf_token"]:
         if places.count(request.form["placeid"])>0:
             return "Mikään kuva ei voi olla merkitty poistettavaan paikkaan"
         places.remove(request.form["placeid"])

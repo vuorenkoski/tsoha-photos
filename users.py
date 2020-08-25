@@ -5,7 +5,7 @@ def check_permission_to_modify(session, photo_id):
     if "userid" in session:
         sql = "SELECT kayttaja_id,julkinen FROM photos_valokuvat WHERE photos_valokuvat.id=:id"
         data = db.session.execute(sql, {"id":photo_id}).fetchone()
-        if data[0]==session["userid"]:
+        if data[0] == session["userid"]:
             return True
     return False
 
@@ -15,7 +15,7 @@ def check_permission_to_view(session, photo_id):
     if data[1]:
         return True
     if "userid" in session:
-        if data[0]==session["userid"]:
+        if data[0] == session["userid"]:
             return True
         sql = "SELECT kayttaja_id FROM photos_oikeudet WHERE valokuva_id=:id"
         data = db.session.execute(sql, {"id":photo_id}).fetchall()
@@ -24,7 +24,7 @@ def check_permission_to_view(session, photo_id):
     return False
 
 def get_userdata(username=None, id=None):
-    if id==None:
+    if id == None:
         sql = "SELECT id, tunnus, salasana, admin FROM photos_kayttajat WHERE tunnus=:username"
         result = db.session.execute(sql, {"username":username})
         return result.fetchone()

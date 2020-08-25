@@ -6,22 +6,22 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 db = SQLAlchemy(app)
 
 def add_person_todb(name):
-    if name=="" or name=="None" or len(name)>30:
+    if name == "" or name == "None" or len(name) > 30:
         return None
     sql = "SELECT id FROM photos_henkilot WHERE LOWER(nimi)=LOWER(:name)"
     person_id = db.session.execute(sql, {"name":name}).fetchone()
-    if person_id==None:
+    if person_id == None:
         sql = "INSERT INTO photos_henkilot (nimi, syntymavuosi) VALUES (:name,0) RETURNING id"
         person_id = db.session.execute(sql, {"name":name}).fetchone()
         db.session.commit()
     return person_id[0]
 
 def add_keyword_todb(keyword):
-    if keyword=="" or keyword=="None" or len(keyword)>20:
+    if keyword == "" or keyword == "None" or len(keyword) > 20:
         return None
     sql = "SELECT id FROM photos_avainsanat WHERE LOWER(avainsana)=LOWER(:keyword)"
     keyword_id = db.session.execute(sql, {"keyword":keyword}).fetchone()
-    if keyword_id==None:
+    if keyword_id == None:
         sql = "INSERT INTO photos_avainsanat (avainsana) VALUES (:keyword) RETURNING id"
         keyword_id = db.session.execute(sql, {"keyword":keyword}).fetchone()
         db.session.commit()

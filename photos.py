@@ -21,7 +21,7 @@ def get_users_photos(user_id, f = None):
 
 def get_others_photos(user_id, f = None):
     values, filters = set_filters(user_id, f)
-    if user_id==None:
+    if user_id == None:
         sql = "SELECT photos_valokuvat.id, kuvausaika, tekstikuvaus, paikka, paikka_id, tunnus FROM photos_valokuvat " \
             "LEFT JOIN photos_paikat ON paikka_id=photos_paikat.id LEFT JOIN photos_kayttajat ON kayttaja_id=photos_kayttajat.id "\
             "WHERE julkinen=true " + " ".join(filters) + " ORDER BY kuvausaika ASC NULLS FIRST"
@@ -37,32 +37,32 @@ def get_others_photos(user_id, f = None):
 def set_filters(user_id, f):
     values = dict()
     filters = []
-    if f!=None:
-        if f["startdate"]!="":
+    if f != None:
+        if f["startdate"] != "":
             values["startdate"]=f["startdate"]
             filters.append("AND photos_valokuvat.kuvausaika>=:startdate")
-        if f["enddate"]!="":
+        if f["enddate"] != "":
             values["enddate"]=f["enddate"]+" 23:59"
             filters.append("AND photos_valokuvat.kuvausaika<=:enddate")
-        if f["place"]!="":
+        if f["place"] != "":
             sql = "SELECT id FROM photos_paikat WHERE paikka=:place"
             result = db.session.execute(sql, {"place":f["place"]}).fetchone()
-            if result!=None:
+            if result != None:
                 values["place_id"]=result[0]
                 filters.append("AND photos_valokuvat.paikka_id=:place_id")
-        if f["person"]!="":
+        if f["person"] != "":
             sql = "SELECT id FROM photos_henkilot WHERE nimi=:person"
             result = db.session.execute(sql, {"person":f["person"]}).fetchone()
-            if result!=None:
+            if result != None:
                 values["person_id"]=result[0]
                 filters.append("AND photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id)")
-        if f["keyword"]!="":
+        if f["keyword"] != "":
             sql = "SELECT id FROM photos_avainsanat WHERE avainsana=:keyword"
             result = db.session.execute(sql, {"keyword":f["keyword"]}).fetchone()
             if result!=None:
                 values["keyword_id"]=result[0]
                 filters.append("AND photos_valokuvat.id IN (SELECT valokuva_id FROM photos_valokuvienavainsanat WHERE avainsana_id=:keyword_id)")    
-        if "owner" in f and f["owner"]!="":
+        if "owner" in f and f["owner"] != "":
             sql = "SELECT id FROM photos_kayttajat WHERE tunnus=:owner"
             result = db.session.execute(sql, {"owner":f["owner"]}).fetchone()
             if result!=None:
@@ -73,15 +73,15 @@ def set_filters(user_id, f):
 def save_photo(user_id, photo, place_id, photographer_id):
     image = Image.open(photo)
     image.thumbnail(PHOTO_SIZE)
-    if image._getexif()!=None and (36867 in image._getexif()) and re.match(r"\d\d\d\d:\d\d:\d\d \d\d:\d\d:\d\d", image._getexif()[36867]):
-        datetime=image._getexif()[36867]
-        datetime=datetime[0:4]+"-"+datetime[5:7]+"-"+datetime[8:] # exif standardi YYYY:MM:DD HH:MM:SS
+    if image._getexif() != None and (36867 in image._getexif()) and re.match(r"\d\d\d\d:\d\d:\d\d \d\d:\d\d:\d\d", image._getexif()[36867]):
+        datetime = image._getexif()[36867]
+        datetime = datetime[0:4]+"-"+datetime[5:7]+"-"+datetime[8:] # exif standardi YYYY:MM:DD HH:MM:SS
     else:
-        datetime=None
+        datetime = None
     sql = "INSERT INTO photos_valokuvat (kayttaja_id, kuvausaika, aikaleima, tekstikuvaus, julkinen, paikka_id, valokuvaaja_id) " \
         "VALUES (:user_id, :datetime, NOW(), :description, false, :place_id, :photographer_id) RETURNING id"
-    result=db.session.execute(sql, {"user_id":user_id, "datetime":datetime, "description":"", "place_id":place_id, "photographer_id":photographer_id})
-    id=result.fetchone()[0]
+    result = db.session.execute(sql, {"user_id":user_id, "datetime":datetime, "description":"", "place_id":place_id, "photographer_id":photographer_id})
+    id = result.fetchone()[0]
     db.session.commit()
 
     save_image(image, "photo"+str(id)+".jpg")
@@ -91,7 +91,7 @@ def save_photo(user_id, photo, place_id, photographer_id):
 
 def save_image(image, filename):
     if USE_PSQL_STORAGE_FOR_JPG:
-        f=BytesIO()
+        f = BytesIO()
         image.save(f, format="jpeg")
         sql = "INSERT INTO photos_jpgkuva (tiedostonimi, kuva) VALUES (:filename, :image)"
         db.session.execute(sql, {"filename":filename, "image":f.getvalue()})
@@ -108,7 +108,7 @@ def get_persons(photo_id):
     sql = "SELECT nimi FROM photos_henkilot,photos_valokuvienhenkilot WHERE valokuva_id=:id AND photos_henkilot.id=henkilo_id"
     persons = db.session.execute(sql, {"id":photo_id}).fetchall()
     personstr = ", ".join(t[0] for t in persons)
-    if personstr=="":
+    if personstr == "":
         personstr = "--"
     return (personstr,persons)
 
@@ -116,7 +116,7 @@ def get_keywords(photo_id):
     sql = "SELECT avainsana FROM photos_avainsanat,photos_valokuvienavainsanat WHERE valokuva_id=:id AND photos_avainsanat.id=avainsana_id"
     keywords = db.session.execute(sql, {"id":photo_id}).fetchall()
     keywordstr = ", ".join(t[0] for t in keywords)
-    if keywordstr=="":
+    if keywordstr == "":
         keywordstr = "--"
     return (keywordstr,keywords)
 
@@ -124,7 +124,7 @@ def get_permissions(photo_id):
     sql = "SELECT tunnus FROM photos_oikeudet,photos_kayttajat WHERE valokuva_id=:id AND photos_kayttajat.id=kayttaja_id"
     permissions = db.session.execute(sql, {"id":photo_id}).fetchall()
     permissionstr = ", ".join(t[0] for t in permissions)
-    if permissionstr=="":
+    if permissionstr == "":
         permissionstr = "--"
     return (permissionstr,permissions)
 
@@ -141,14 +141,14 @@ def get_image(filename):
 def get_place(photo_id):
     sql = "SELECT paikka FROM photos_valokuvat LEFT JOIN photos_paikat ON photos_valokuvat.paikka_id=photos_paikat.id WHERE photos_valokuvat.id=:photo_id"
     place = db.session.execute(sql, {"photo_id":photo_id}).fetchone()[0]
-    if place==None:
+    if place == None:
         place = ""
     return place
 
 def add_person(photo_id, person):
     person_id = add_person_todb(person)
     sql = "SELECT COUNT(*) FROM photos_valokuvienhenkilot WHERE henkilo_id=:person_id AND valokuva_id=:photo_id"
-    if db.session.execute(sql, {"person_id":person_id, "photo_id":photo_id}).fetchone()[0]==0:
+    if db.session.execute(sql, {"person_id":person_id, "photo_id":photo_id}).fetchone()[0] == 0:
         sql = "INSERT INTO photos_valokuvienhenkilot (henkilo_id, valokuva_id) VALUES (:person_id, :photo_id)"
         db.session.execute(sql, {"person_id":person_id, "photo_id":photo_id})
         db.session.commit()
@@ -180,7 +180,7 @@ def remove_keyword(photo_id, keyword):
 def add_permission(photo_id, username):
     sql = "SELECT id FROM photos_kayttajat WHERE tunnus=:username"
     user_id = db.session.execute(sql, {"username":username}).fetchone()
-    if user_id!=None:
+    if user_id != None:
         sql = "SELECT COUNT(*) FROM photos_oikeudet WHERE kayttaja_id=:user_id AND valokuva_id=:photo_id"
         if db.session.execute(sql, {"user_id":user_id[0], "photo_id":photo_id}).fetchone()[0]==0:
             db.session.execute("INSERT INTO photos_oikeudet (kayttaja_id, valokuva_id) VALUES (:user_id, :photo_id)", {"user_id":user_id[0], "photo_id":photo_id})
