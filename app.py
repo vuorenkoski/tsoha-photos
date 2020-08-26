@@ -158,7 +158,6 @@ def addinfo(id):
 def addinfo_data(id):
     if not users.check_permission_to_modify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
-    exitPage = True
 
     if request.form["date"] != "":
         datetime = request.form["date"] + " " + request.form["time"]
@@ -173,29 +172,18 @@ def addinfo_data(id):
 
     if request.form["addPerson"] != "":
         photos.add_person(id, request.form["addPerson"])
-        exitPage = False
     if request.form["removePerson"] != "":
         photos.remove_person(id, request.form["removePerson"])
-        exitPage = False
     if request.form["addKeyword"] != "":
         photos.add_keyword(id, request.form["addKeyword"])
-        exitPage = False
     if request.form["removeKeyword"] != "":
         photos.remove_keyword(id, request.form["removeKeyword"])
-        exitPage = False
     if request.form["addPermission"] != "":
         photos.add_permission(id, request.form["addPermission"])
-        exitPage = False
     if request.form["removePermission"] != "":
         photos.remove_permission(id, request.form["removePermission"])
-        exitPage = False
     photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
-    if exitPage:
-        if request.form["previous_page"] == "/upload":
-            return redirect("/upload") 
-        return redirect("/view")
-    else:
-        return redirect("/addinfo/"+str(id))
+    return redirect("/addinfo/"+str(id))
 
 @app.route("/remove/<int:id>", methods=["GET"])
 def remove(id):
