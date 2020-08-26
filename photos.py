@@ -11,7 +11,7 @@ USE_PSQL_STORAGE_FOR_JPG = True
 app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 
-def get_users_photos(user_id, f = None):
+def get_users_photos(user_id, f=None):
     values, filters = set_filters(user_id, f)
     values["user_id"] = user_id
     sql = "SELECT photos_photos.id, datetime, description, place, place_id FROM photos_photos " \
@@ -19,7 +19,7 @@ def get_users_photos(user_id, f = None):
     result = db.session.execute(sql, values).fetchall()
     return result
 
-def get_others_photos(user_id, f = None):
+def get_others_photos(user_id, f=None):
     values, filters = set_filters(user_id, f)
     if user_id == None:
         sql = "SELECT photos_photos.id, datetime, description, place, place_id, username FROM photos_photos " \
@@ -59,13 +59,13 @@ def set_filters(user_id, f):
         if f["keyword"] != "":
             sql = "SELECT id FROM photos_keywords WHERE keyword=:keyword"
             result = db.session.execute(sql, {"keyword":f["keyword"]}).fetchone()
-            if result!=None:
+            if result != None:
                 values["keyword_id"]=result[0]
                 filters.append("AND photos_photos.id IN (SELECT photo_id FROM photos_photokeywords WHERE keyword_id=:keyword_id)")    
         if "owner" in f and f["owner"] != "":
             sql = "SELECT id FROM photos_users WHERE username=:owner"
             result = db.session.execute(sql, {"owner":f["owner"]}).fetchone()
-            if result!=None:
+            if result != None:
                 values["owner_id"]=result[0]
                 filters.append("AND photos_photos.user_id=:owner_id") 
     return (values,filters)

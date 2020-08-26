@@ -61,8 +61,8 @@ def view():
         photodata = photos.get_users_photos(session["userid"], f=session["filters"])
         persons = [photos.get_persons(photo[0])[0] for photo in photodata]
         keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
-        return render_template("view.html", photos=list(zip(photodata,persons,keywords)), allPlaces=places.get_all_names(), 
-            allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filters"], count=len(photodata))
+        return render_template("view.html", photos=list(zip(photodata,persons,keywords)), all_places=places.get_all_names(), 
+            all_keywords=get_all_keywords(), all_persons=get_all_persons(), filters=session["filters"], count=len(photodata))
     else:
         return render_template("view.html")
 
@@ -86,8 +86,8 @@ def viewothers():
         photodata = photos.get_others_photos(None, f=session["filtersOthers"])
     persons = [photos.get_persons(photo[0])[0] for photo in photodata]
     keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
-    return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), allPlaces=places.get_all_names(), 
-        allUsers=users.get_all_names(), allKeywords=get_all_keywords(), allPersons=get_all_persons(), filters=session["filtersOthers"])
+    return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), all_places=places.get_all_names(), 
+        all_users=users.get_all_names(), all_keywords=get_all_keywords(), all_persons=get_all_persons(), filters=session["filtersOthers"])
 
 @app.route("/viewothers", methods=["POST"])
 def viewothers_data():
@@ -100,7 +100,7 @@ def viewothers_data():
 @app.route("/upload", methods=["GET"])
 def upload_photo():
     session["page"] = "/upload"
-    return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons())
+    return render_template("upload.html", all_places=places.get_all_names(), all_persons=get_all_persons())
 
 @app.route("/upload", methods=["POST"])
 def upload_photo_data():
@@ -120,7 +120,7 @@ def upload_photo_data():
             if image.filename.lower().endswith(".jpg"):
                 count += 1
                 photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]))
-        return render_template("upload.html", allPlaces=places.get_all_names(), allPersons=get_all_persons(), message="Ladattiin "+str(count)+" kuvaa")
+        return render_template("upload.html", all_places=places.get_all_names(), all_persons=get_all_persons(), message="Ladattiin "+str(count)+" kuvaa")
     return redirect("/addinfo/"+str(id))
 
 @app.route("/addinfo/<int:id>", methods=["GET"])
@@ -143,7 +143,7 @@ def addinfo(id):
     keywordstr,keywords = photos.get_keywords(id)
     place = photos.get_place(id)
     permissionstr,permissions = photos.get_permissions(id)
-    previousPage = session["page"]
+    previous_page = session["page"]
     session["page"] = "/addinfo"
     if photo_attributes[0]!=None:
         date = photo_attributes[0].strftime("%Y-%m-%d")
@@ -152,9 +152,9 @@ def addinfo(id):
         date = None
         time = None
     return render_template("addinfo.html", photo_id=id, date=date, time=time, 
-        description=photo_attributes[2], photographer=photographer, personstr=personstr, persons=persons, allPersons=get_all_persons(), 
-        keywordstr=keywordstr, keywords=keywords, allKeywords=get_all_keywords(), place=place, allPlaces=places.get_all_names(), 
-        public=public, permissionstr=permissionstr, permissions=permissions, users=users.get_all_names(), previousPage=previousPage)
+        description=photo_attributes[2], photographer=photographer, personstr=personstr, persons=persons, all_persons=get_all_persons(), 
+        keywordstr=keywordstr, keywords=keywords, all_keywords=get_all_keywords(), place=place, all_places=places.get_all_names(), 
+        public=public, permissionstr=permissionstr, permissions=permissions, users=users.get_all_names(), previous_page=previous_page)
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfo_data(id):
@@ -162,7 +162,7 @@ def addinfo_data(id):
         return "Ei oikeuksia"
     exitPage = True
 
-    if request.form["date"]!="":
+    if request.form["date"] != "":
         datetime = request.form["date"] + " " + request.form["time"]
     else:
         datetime = None
@@ -173,27 +173,27 @@ def addinfo_data(id):
     photographer_id = add_person_todb(request.form["photographer"])
     place_id = places.add(request.form["place"])
 
-    if request.form["addPerson"]!="":
+    if request.form["addPerson"] != "":
         photos.add_person(id, request.form["addPerson"])
         exitPage = False
-    if request.form["removePerson"]!="":
+    if request.form["removePerson"] != "":
         photos.remove_person(id, request.form["removePerson"])
         exitPage = False
-    if request.form["addKeyword"]!="":
+    if request.form["addKeyword"] != "":
         photos.add_keyword(id, request.form["addKeyword"])
         exitPage = False
-    if request.form["removeKeyword"]!="":
+    if request.form["removeKeyword"] != "":
         photos.remove_keyword(id, request.form["removeKeyword"])
         exitPage = False
-    if request.form["addPermission"]!="":
+    if request.form["addPermission"] != "":
         photos.add_permission(id, request.form["addPermission"])
         exitPage = False
-    if request.form["removePermission"]!="":
+    if request.form["removePermission"] != "":
         photos.remove_permission(id, request.form["removePermission"])
         exitPage = False
     photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
     if exitPage:
-        if request.form["previousPage"] == "/upload":
+        if request.form["previous_page"] == "/upload":
             return redirect("/upload") 
         return redirect("/view")
     else:
@@ -305,7 +305,7 @@ def reset_password(id):
 
 @app.route("/admin/resetpassword/<int:id>", methods=["POST"])
 def reset_password_data(id):
-    if (session["admin"] or session["userid"] == id) and session["csrf_token"]==request.form["csrf_token"]:
+    if (session["admin"] or session["userid"] == id) and session["csrf_token"] == request.form["csrf_token"]:
         users.set_password(request.form["newpassword"], id=id)
         if session["userid"] == id:
             return redirect("/view")

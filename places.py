@@ -1,7 +1,7 @@
 from db import db
 
 def add(place):
-    if place=="" or place=="None" or len(place)>30:
+    if place == "" or place == "None" or len(place) > 30:
         return None
     sql = "SELECT id FROM photos_places WHERE LOWER(place)=LOWER(:place)"
     place_id = db.session.execute(sql, {"place":place}).fetchone()
@@ -24,7 +24,7 @@ def get_attributes(place_id):
     return db.session.execute(sql, {"id":place_id}).fetchone()
 
 def update(place_id, country, region, city, wwwpage):
-    if len(country)>30 or len(region)>30 or len(city)>30 or len(wwwpage)>70:
+    if len(country) > 30 or len(region) > 30 or len(city) > 30 or len(wwwpage) > 70:
         return
     sql = "UPDATE photos_places SET city=:city, country=:country, region=:region, wwwpage=:wwwpage WHERE id=:id"
     db.session.execute(sql, {"id":place_id, "country":country, "region":region, "city":city, "wwwpage":wwwpage})

@@ -18,7 +18,7 @@
         <label for="place">Paikka:</label>
         <select name="place" form="filters">
             <option value=""></option>
-            {% for place in allPlaces %}
+            {% for place in all_places %}
                 <option value="{{ place[0] }}">{{ place[0] }}</option>
             {% endfor %}
             <option value="{{ filters['place'] }}" selected hidden>{{ filters["place"] }}</option>
@@ -28,7 +28,7 @@
         <label for="person">Henkilö:</label>
         <select name="person" form="filters">
             <option value=""></option>
-            {% for person in allPersons %}
+            {% for person in all_persons %}
                 <option value="{{ person[0] }}">{{ person[0] }}</option>
             {% endfor %}
             <option value="{{ filters['person'] }}" selected hidden>{{ filters["person"] }}</option>
@@ -39,7 +39,7 @@
         <label for="keyword">Avainsana:</label>
         <select name="keyword" form="filters">
             <option value=""></option>
-            {% for keyword in allKeywords %}
+            {% for keyword in all_keywords %}
                 <option value="{{ keyword[0] }}">{{ keyword[0] }}</option>
             {% endfor %}
             <option value="{{ filters['keyword'] }}" selected hidden>{{ filters["keyword"] }}</option>
@@ -50,7 +50,7 @@
         <label for="owner">Käyttäjä:</label>
         <select name="owner" form="filters">
             <option value=""></option>
-            {% for user in allUsers %}
+            {% for user in all_users %}
                 <option value="{{ user[0] }}">{{ user[0] }}</option>
             {% endfor %}
             <option value="{{ filters['owner'] }}" selected hidden>{{ filters["owner"] }}</option>

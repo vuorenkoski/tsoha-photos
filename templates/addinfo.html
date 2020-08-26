@@ -5,17 +5,17 @@
 <form action="/addinfo/{{ photo_id }}" method="POST">
 
     <datalist id="All persons">
-        {% for person in allPersons %}
+        {% for person in all_persons %}
             <option value="{{ person[0] }}">
         {% endfor %}
     </datalist>
     <datalist id="All keywords">
-        {% for keyword in allKeywords %}
+        {% for keyword in all_keywords %}
             <option value="{{ keyword[0] }}">
         {% endfor %}
     </datalist>
     <datalist id="All places">
-        {% for place in allPlaces %}
+        {% for place in all_places %}
             <option value="{{ place[0] }}">
         {% endfor %}
     </datalist>
