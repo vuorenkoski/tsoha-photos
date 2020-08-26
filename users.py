@@ -17,7 +17,7 @@ def check_permission_to_view(session, photo_id):
     if "userid" in session:
         if data[0] == session["userid"]:
             return True
-        sql = "SELECT user_id FROM photos_permissions WHERE valokuva_id=:id"
+        sql = "SELECT user_id FROM photos_permissions WHERE photo_id=:id"
         data = db.session.execute(sql, {"id":photo_id}).fetchall()
         if (session["userid"],) in data:
             return True
