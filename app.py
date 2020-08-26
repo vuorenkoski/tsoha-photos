@@ -48,7 +48,7 @@ def signup_data():
     if username == "" or password == "":
         return render_template("signup.html", error="tunnus tai salasana ei voi olla tyhjä")
     if len(username)>10:
-        return render_template("signup.html", error="Käyttäjänimi on liian pitkä")
+        return render_template("signup.html", error="käyttäjänimi on liian pitkä")
     if users.username_exists(username):
         return render_template("signup.html", error="tunnus on jo käytössä")
     id = users.new_user(username,password)
