@@ -9,8 +9,6 @@ app.version = "25.8.2020"
 from db import db, get_all_persons, get_all_keywords, add_person_todb
 import users, photos, places
 
-parse_photoid = re.compile(r"photo(\d+)(_thmb)?\.jpg\Z")
-
 @app.route("/")
 def index():
     session["page"] = "/"
@@ -245,6 +243,7 @@ def placeinfo(id):
 
 @app.route("/photos/<filename>")
 def show_photo(filename):
+    parse_photoid = re.compile(r"photo(\d+)(_thmb)?\.jpg\Z")
     r = parse_photoid.match(filename)
     if r != None:
         if not users.check_permission_to_view(session, int(r.group(1))):
