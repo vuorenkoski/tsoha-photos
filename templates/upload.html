@@ -5,6 +5,7 @@
 
 {% if session.username %}
 
+<div class="formblock">
 <form method=post enctype=multipart/form-data>
   <datalist id="All places">
     {% for place in all_places %}
@@ -28,6 +29,7 @@
   <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
   <input type=submit value=Lataa>
 </form>
+</div>
 
 {% if message %}
 <p><b>{{ message }}</b></p>

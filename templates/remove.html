@@ -10,7 +10,7 @@ Oletko varma että haluat poistaa tämän kuvan?
 <input type="hidden" name="removephoto" value="{{ session.csrf_token }}">
 <input type="submit" value="Kyllä">
 </form>
-<br>
-<a href="/view">Palaa takaisin</a>
-
+<div class="buttonlink">
+<a href="/view">Ei</a>
+</div>
 {% endblock %}

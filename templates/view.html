@@ -3,29 +3,17 @@
 {% block content %}
 
 {% if session.username %}
-<form action="/view" method="POST" id="filters"></form>
-<form action="/view" method="POST" id="reset">
-    <input type="hidden" name="reset" value="reset">
-</form>
 
-<table>
-<tr>
-    <td>
-        Päivämäärä: 
-        <input type="date" form="filters" name="startdate" value="{{ filters['startdate'] }}">-
-        <input type="date" form="filters" name="enddate" value="{{ filters['enddate'] }}">
-    </td>
-    <td>
+<div class="formblock">
+    <form action="/view" method="POST" id="filters">
         <label for="place">Paikka:</label>
-        <select name="place" form="filters">
+        <select id="selector" name="place" form="filters">
             <option value=""></option>
             {% for place in all_places %}
                 <option value="{{ place[0] }}">{{ place[0] }}</option>
             {% endfor %}
             <option value="{{ filters['place'] }}" selected hidden>{{ filters["place"] }}</option>
         </select>
-    </td>
-    <td>
         <label for="person">Henkilö:</label>
         <select name="person" form="filters">
             <option value=""></option>
@@ -34,9 +22,6 @@
             {% endfor %}
             <option value="{{ filters['person'] }}" selected hidden>{{ filters["person"] }}</option>
         </select>
-    </td>
-
-    <td>
         <label for="keyword">Avainsana:</label>
         <select name="keyword" form="filters">
             <option value=""></option>
@@ -45,17 +30,19 @@
             {% endfor %}
             <option value="{{ filters['keyword'] }}" selected hidden>{{ filters["keyword"] }}</option>
         </select>
-    </td>
-</tr>
-<tr>
-    <td>
-        <input type=submit form="filters" value=Päivitä>
-        <input type=submit form="reset" value="Poista valinnat">
-    </td>
-</tr>
-</table>
 
-Valokuvia: {{ count }}
+        <br>
+        Päivämäärä: 
+        <input type="date" form="filters" name="startdate" value="{{ filters['startdate'] }}">-
+        <input type="date" form="filters" name="enddate" value="{{ filters['enddate'] }}">
+
+        <br>
+        <input type=submit form="filters" value="Päivitä lista">
+        <button type=submit form="filters" name="reset" value="reset">Poista valinnat</button>
+    </form>
+</div>
+
+<p>Valokuvia: {{ count }}</p>
 <table>
 {% for photo in photos %}
 <tr>
@@ -63,30 +50,40 @@ Valokuvia: {{ count }}
         <img src="/photos/photo{{ photo[0][0] }}_thmb.jpg">
     </td>
     <td>
-        Päivämäärä:
+        <b>Päivämäärä:</b>
         {% if photo[0][1] %}
              {{ photo[0][1].strftime("%d.%m.%Y") }} 
         {% else %}
             -- 
         {% endif %}
         <br>
-        Paikka: 
+        <b>Paikka:</b> 
         {% if photo[0][3] %}
             <a href="/placeinfo/{{ photo[0][4] }}">{{ photo[0][3] }}</a>
         {% else %}
             -- 
         {% endif %}
         <br>
-        Kuvaus: {{ photo[0][2] }} <br>
+        <b>Kuvaus:</b> {{ photo[0][2] }} <br>
     </td>
     <td>
-        Henkilöt: {{ photo[1] }} <br>
-        Avainsanat: {{ photo[2] }} <br>
+        <b>Henkilöt:</b> {{ photo[1] }} <br>
+        <b>Avainsanat:</b> {{ photo[2] }} <br>
     </td>
     <td>
-        <a href="/addinfo/{{ photo[0][0] }}">Muokkaa tietoja</a> <br>
-        <a href="/photos/photo{{ photo[0][0] }}.jpg">Näytä kuva</a> <br>
-        <a href="/remove/{{ photo[0][0] }}">Poista kuva</a> <br>
+        <div class="buttonlink">
+        <a href="/addinfo/{{ photo[0][0] }}">Muokkaa</a>
+        </div>
+    </td>
+    <td>
+        <div class="buttonlink">
+        <a href="/photos/photo{{ photo[0][0] }}.jpg">Näytä</a> <br>
+        </div>
+    </td>
+    <td>
+        <div class="buttonlink">
+        <a href="/remove/{{ photo[0][0] }}">Poista</a> <br>
+        </div>
     </td>
 </tr>
 {% endfor %}

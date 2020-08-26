@@ -19,14 +19,18 @@
         Valokuvia: {{ place[1] }} <br>
     </td>
     <td>
-        <a href="/place/{{ place[0][0] }}">Muokkaa tietoja</a> <br>
-        {% if session.admin==true %}
-        <form action="/admin/removeplace" method="post">
+        <div class="buttonlink">
+            <a href="/place/{{ place[0][0] }}">Muokkaa</a>
+        </div>
+    </td>
+    {% if session.admin==true %}
+    <td>
+        <form action="/admin/removeplace" method="POST">
             <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
             <button type="submit" name="placeid" value="{{ place[0][0] }}">Poista</button>
         </form>
-        {% endif %}
     </td>
+    {% endif %}
 </tr>
 {% endfor %}
 </table>

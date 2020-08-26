@@ -1,42 +1,42 @@
-<!doctype html>
-<html><head>
+<!DOCTYPE html>
+<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<head>
 <title>Photos -sovellus</title>
-<style>
-    td {
-      padding: 10px;
-    }
-</style>
 </head>
 
 <body>
-<h1><center>Photos -sovellus</center></h1>
+  <div class="header">
+    <h1>Photos -sovellus</h1>
+    {% if session.username %}
+    Käyttäjä: {{ session.username }}
+    {% endif %}
+  </div>  
+  {% if session.username %}
+  <nav>
+      <ul>
+        <li><a href="/view">Omat kuvat</a></li>
+        <li><a href="/viewothers">Muiden kuvat</a></li>
+        <li><a href="/places">Paikat</a></li>
+        <li><a href="/upload">Lisää kuva</a></li>
+        <li><a href="/admin/resetpassword/{{ session.userid }}">Vaihda salasana</a></li>
 
-{% if session.username %}
-<table>
-<tr>
-<td>Käyttäjä: {{ session.username }}</td>
-<td><a href="/view">Omat kuvat</a></td>
-<td><a href="/viewothers">Muiden kuvat</a></td>
-<td><a href="/places">Paikat</a></td>
-<td><a href="/upload">Lisää kuva</a></td>
-<td><a href="/admin/resetpassword/{{ session.userid }}">Vaihda salasana</a></td>
+        {% if session.admin == true %}
+        <li><a href="/admin">Admin</a></li>
+        {% endif %}
+        <li><a href="/help">Ohje</a></li>
 
-{% if session.admin == true %}
-<td><a href="/admin">Admin</a></td>
-{% endif %}
-<td><a href="/help">Ohje</a></td>
+        <li><a href="/logout">Kirjaudu ulos</a></li>
+      </ul>
+    </nav>
+    {% endif %}
 
-<td><a href="/logout">Kirjaudu ulos</a></td>
-</tr>
-</table>
-{% endif %}
-<hr>
+  <div class="content">
+    <h2>{% block header %}{% endblock %}</h2>
 
-<h2>{% block header %}{% endblock %}</h2>
+    {% block content %}{% endblock %}
 
-
-{% block content %}{% endblock %}
-
+  </div>
 
 </body>
-</html>

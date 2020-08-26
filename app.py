@@ -170,18 +170,18 @@ def addinfo_data(id):
     photographer_id = add_person_todb(request.form["photographer"])
     place_id = places.add(request.form["place"])
 
-    if request.form["addPerson"] != "":
-        photos.add_person(id, request.form["addPerson"])
-    if request.form["removePerson"] != "":
-        photos.remove_person(id, request.form["removePerson"])
-    if request.form["addKeyword"] != "":
-        photos.add_keyword(id, request.form["addKeyword"])
-    if request.form["removeKeyword"] != "":
-        photos.remove_keyword(id, request.form["removeKeyword"])
-    if request.form["addPermission"] != "":
-        photos.add_permission(id, request.form["addPermission"])
-    if request.form["removePermission"] != "":
-        photos.remove_permission(id, request.form["removePermission"])
+    if request.form["add_person"] != "":
+        photos.add_person(id, request.form["add_person"])
+    if request.form["remove_person"] != "":
+        photos.remove_person(id, request.form["remove_person"])
+    if request.form["add_keyword"] != "":
+        photos.add_keyword(id, request.form["add_keyword"])
+    if request.form["remove_keyword"] != "":
+        photos.remove_keyword(id, request.form["remove_keyword"])
+    if request.form["add_permission"] != "":
+        photos.add_permission(id, request.form["add_permission"])
+    if request.form["remove_permission"] != "":
+        photos.remove_permission(id, request.form["remove_permission"])
     photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
     return redirect("/addinfo/"+str(id))
 

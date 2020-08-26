@@ -1,31 +1,24 @@
 {% extends "layout.html" %}
-{% block header %}Katsele ja muuta paikan tietoja{% endblock %}
+{% block header %}Muuta paikan tietoja{% endblock %}
 
 {% block content %}
 {% if session.username %}
 
+<div class="formblock" style="width: 40em">
 <h3>{{ place }}</h3>
-
 <form action="/place/{{ place_id }}" method="POST">
-
     <p>Kaupunki:
         <input type="text" name="city" value="{{ city }}"></p>
-
     <p>Alue: 
         <input type="text" name="region" value="{{ region }}"></p>
-
     <p>Maa:
         <input type="text" name="country" value="{{ country }}"></p>
-    
     <p>www-sivu:
         <input type="url" name="wwwpage" value="{{ wwwpage }}"></p>
-        
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-        
     <input type="submit" value="Talenna tiedot">
-
 </form>
-
+</div>
 {% endif %}
 
 

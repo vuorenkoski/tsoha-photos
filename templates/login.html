@@ -2,15 +2,16 @@
 {% block header %}Kirjautuminen{% endblock %}
 
 {% block content %}
-Kirjaudu sisään:
+<div class="formblock" style="width: 30em">
 <form action="/login" method="POST">
+    <b>Kirjaudu sisään:</b>
     <p>Tunnus:<br>
     <input type="text" name="username"></p>
     <p>Salasana:<br>
     <input type="password" name="password"></p>
     <input type="submit" value="Kirjaudu">
 </form>
-
+</div>
 {% if message %}
 <p><b>{{ message }}</b></p>
 <p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>

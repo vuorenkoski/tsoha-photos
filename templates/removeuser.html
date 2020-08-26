@@ -2,22 +2,22 @@
 {% block header %}Poista käyttäjä{% endblock %}
 
 {% block content %}
+<div class="formblock">
+    <p><b>Id:</b> {{ userdata[0] }}</p> 
+    <p><b>Tunnus:</b> {{ userdata[1] }}</p>
+    {% if userdata[3]==true %}
+    <p>Pääkäyttäjä</p> 
+    {% endif %}
 
-<p>id: {{ userdata[0] }}</p> 
-<p>tunnus: {{ userdata[1] }}</p>
-
-{% if userdata[3]==true %}
-<p>Pääkäyttäjä</p> 
-{% endif %}
-
-<br><br>
-Oletko varma että haluat poistaa tämän käyttäjän?
-<form action="/admin/removeuser/{{ userdata[0] }}" method="POST">
-<input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-<input type="hidden" name="removeuser" value="{{ session.csrf_token }}">
-<input type="submit" value="Kyllä">
-</form>
-<br>
-<a href="/admin">Palaa takaisin</a>
-
+    Oletko varma että haluat poistaa tämän käyttäjän?
+    <br>
+    <form action="/admin/removeuser/{{ userdata[0] }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <input type="hidden" name="removeuser" value="{{ session.csrf_token }}">
+        <input type="submit" value="Kyllä">
+    </form>
+    <div class="buttonlink">
+        <a href="/admin">Ei</a>
+    </div>
+</div>
 {% endblock %}

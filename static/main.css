@@ -1,0 +1,130 @@
+body {
+    margin: auto;
+    max-width: 75em;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    background: skyblue;
+}
+
+nav ul {
+    padding: 0em;
+    margin: 0em;
+}
+
+nav li {
+    display: inline-block;
+    font-weight: bold;
+    padding: 1em 0.5em 0.5em 1em;
+    background: skyblue;
+    margin: 0em;
+}
+
+nav li:hover {
+    background-color: rgb(226, 226, 226);
+}
+
+
+nav li a {
+    text-decoration: none;
+    color: #000;
+}
+
+.header {
+    background: skyblue;
+    padding: 1em 1em 0.5em 1em;
+    font-size: 1em;
+}
+
+h2 {
+    padding: 0em;
+}
+
+h1 {
+    padding: 0em;
+    margin: 0em;
+}
+
+.content {
+    background: white;
+    padding: .5em 2em 2em 2em;
+}
+
+.addinfogrid {
+    display: grid;
+    max-width: 60em;
+    grid-template-columns: 30em 30em;
+    grid-column-gap: 3em;
+    grid-row-gap: 1em;
+    padding-bottom: 1em;
+}
+
+.formblock {
+    display: block;
+    max-width: 60em;
+    width: fit-content;
+    padding: .5em;
+    border-radius: 1em;
+    background: rgb(219, 235, 241)
+}
+
+input[type=submit], button[type=submit] {
+    text-align: center;
+    width: content;
+    border: none;
+    padding: .5em;
+    margin: 0.2em;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+    background-color: tan;
+    border-radius: .5em;
+}
+
+input[type=submit]:hover, button[type=submit]:hover {
+    background-color: rgb(218, 206, 192);
+}
+
+input[type=date] {
+    background-color:white;
+    margin: 0.5em;
+}
+
+select {
+    background-color: white;
+    margin: 0.5em;
+    width: 15em;
+}
+
+.buttonlink {
+    text-align: center;
+    width: min-content;
+    padding: .5em;
+    margin: 0.2em;
+    color: #000;
+    background-color: tan;
+    border-radius: .5em;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+}
+
+.buttonlink a:link {
+    text-decoration: none;
+    color: #000;
+}
+
+.buttonlink a:visited {
+    text-decoration: none;
+    color: #000;
+}
+
+.buttonlink:hover {
+    background-color: rgb(218, 206, 192);
+}
+
+th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 1em 0.5em;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}

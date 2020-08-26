@@ -3,6 +3,7 @@
 
 {% block content %}
 
+<div class="formblock" style="width: 30em">
 Luo käyttäjätunnus:
 
 <form action="/signup" method="POST">
@@ -12,7 +13,7 @@ Luo käyttäjätunnus:
     <input type="password" name="password"></p>
     <input type="submit" value="luo tunnus">
 </form>
-
+</div>
 {% if error %}
 <p><b>VIRHE: {{ error }}</b></p>
 {% endif %}
