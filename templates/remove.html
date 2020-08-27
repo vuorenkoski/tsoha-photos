@@ -8,9 +8,9 @@ Oletko varma että haluat poistaa tämän kuvan?
 <form action="/remove/{{ photo_id }}" method="POST">
 <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 <input type="hidden" name="removephoto" value="{{ session.csrf_token }}">
-<input type="submit" value="Kyllä">
+<input type="submit" style="width: 5em" value="Kyllä">
 </form>
-<div class="buttonlink">
+<div class="buttonlink" style="width: 4em">
 <a href="/view">Ei</a>
 </div>
 {% endblock %}

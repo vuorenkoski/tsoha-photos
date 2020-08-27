@@ -4,7 +4,7 @@ import re
 
 app = Flask(__name__)
 app.secret_key = getenv("SECRET_KEY")
-app.version = "25.8.2020"
+app.version = "27.8.2020"
 
 from db import db, get_all_persons, get_all_keywords, add_person_todb
 import users, photos, places

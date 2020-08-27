@@ -14,9 +14,9 @@
     <form action="/admin/removeuser/{{ userdata[0] }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
         <input type="hidden" name="removeuser" value="{{ session.csrf_token }}">
-        <input type="submit" value="Kyllä">
+        <input type="submit" style="width: 5em" value="Kyllä">
     </form>
-    <div class="buttonlink">
+    <div class="buttonlink" style="width: 4em">
         <a href="/admin">Ei</a>
     </div>
 </div>

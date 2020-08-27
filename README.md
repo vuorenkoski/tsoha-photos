@@ -22,10 +22,6 @@ Sovellukseen on toteuttu kaikki toiminnallisuudet:
 - Admin käyttäjälle mahdollisuus hallinnoida käyttäjätietoja
 - salasanan muutaminen
 
-Sovelluksesta vielä puutuu:
-
-- Ulkoasun virittäminen paremmaksi
-
 ## Sovelluksen testaaminen
 
 Sovellukseen voi testaamista varten voi luoda oman tunnuksen.
