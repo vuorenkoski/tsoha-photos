@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block header %}Reskiteröityminen{% endblock %}
+{% block header %}Rekisteröityminen{% endblock %}
 
 {% block content %}
 
@@ -17,4 +17,7 @@ Luo käyttäjätunnus:
 {% if error %}
 <p><b>VIRHE: {{ error }}</b></p>
 {% endif %}
+<div class="buttonlink" style="width: 4em">
+    <a href="/">Takaisin</a>
+</div>
 {% endblock %}

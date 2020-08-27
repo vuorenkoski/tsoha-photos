@@ -1,5 +1,4 @@
 {% extends "layout.html" %}
-{% block header %}Etusivu{% endblock %}
 {% block content %}
 
 {% if session.username %}
@@ -31,9 +30,18 @@
 
 <p></p>
 {% else %}
+<div class="formblock" style="width: 30em">
+    <form action="/login" method="POST">
+        <b>Kirjaudu sisään:</b>
+        <p>Tunnus:<br>
+        <input type="text" name="username"></p>
+        <p>Salasana:<br>
+        <input type="password" name="password"></p>
+        <input type="submit" value="Kirjaudu">
+    </form>
+</div>
 
-<p>Kirjaudu sisään <a href="/login">tästä</a></p>
-<p>Oletko uusi käyttäjä? Rekisteröidy <a href="/signup">tästä</a></p>
-<p>Katso julkisia kuvia <a href="/viewothers">tästä</a></p>
+<p>Oletko uusi käyttäjä? <a href="/signup">Rekisteröidy </a></p>
+<p><a href="/viewothers">Katso julkisia kuvia</a></p>
 {% endif %}
 {% endblock %}
