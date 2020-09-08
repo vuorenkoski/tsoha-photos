@@ -38,25 +38,25 @@ def set_filters(user_id, f):
     values = dict()
     filters = []
     if f != None:
-        if f["startdate"] != "":
+        if "startdate" in f and f["startdate"] != "":
             values["startdate"]=f["startdate"]
             filters.append("AND photos_photos.datetime>=:startdate")
-        if f["enddate"] != "":
+        if "enddate" in f and f["enddate"] != "":
             values["enddate"]=f["enddate"]+" 23:59"
             filters.append("AND photos_photos.datetime<=:enddate")
-        if f["place"] != "":
+        if "place" in f and f["place"] != "":
             sql = "SELECT id FROM photos_places WHERE place=:place"
             result = db.session.execute(sql, {"place":f["place"]}).fetchone()
             if result != None:
                 values["place_id"]=result[0]
                 filters.append("AND photos_photos.place_id=:place_id")
-        if f["person"] != "":
+        if "person" in f and f["person"] != "":
             sql = "SELECT id FROM photos_persons WHERE name=:person"
             result = db.session.execute(sql, {"person":f["person"]}).fetchone()
             if result != None:
                 values["person_id"]=result[0]
                 filters.append("AND photos_photos.id IN (SELECT photo_id FROM photos_photopersons WHERE person_id=:person_id)")
-        if f["keyword"] != "":
+        if "keyqord" in f and f["keyword"] != "":
             sql = "SELECT id FROM photos_keywords WHERE keyword=:keyword"
             result = db.session.execute(sql, {"keyword":f["keyword"]}).fetchone()
             if result != None:

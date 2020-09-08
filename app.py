@@ -87,6 +87,18 @@ def viewothers():
     return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), all_places=places.get_all_names(), 
         all_users=users.get_all_names(), all_keywords=get_all_keywords(), all_persons=get_all_persons(), filters=session["filtersOthers"])
 
+@app.route("/viewothers/<string:keyword>", methods=["GET"])
+def viewothers_keyword(keyword):
+    session["page"] = "/viewothers"
+    if "userid" in session:
+        photodata = photos.get_others_photos(session["userid"], f={"keyword":keyword})
+    else:
+        photodata = photos.get_others_photos(None, f={"keyword":keyword})
+    persons = [photos.get_persons(photo[0])[0] for photo in photodata]
+    keywords = [photos.get_keywords(photo[0])[0] for photo in photodata]
+    return render_template("viewothers.html", photos=list(zip(photodata, persons, keywords)), all_places=places.get_all_names(), 
+        all_users=users.get_all_names(), all_keywords=get_all_keywords(), all_persons=get_all_persons(), filters={"keyword":keyword})
+
 @app.route("/viewothers", methods=["POST"])
 def viewothers_data():
     if "reset" in request.form:
@@ -183,7 +195,7 @@ def addinfo_data(id):
     if request.form["remove_permission"] != "":
         photos.remove_permission(id, request.form["remove_permission"])
     photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
-    return redirect("/addinfo/"+str(id))
+    return redirect("/view")
 
 @app.route("/remove/<int:id>", methods=["GET"])
 def remove(id):
