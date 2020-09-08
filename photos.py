@@ -70,7 +70,7 @@ def set_filters(user_id, f):
                 filters.append("AND photos_photos.user_id=:owner_id") 
     return (values,filters)
 
-def save_photo(user_id, photo, place_id, photographer_id):
+def save_photo(user_id, photo, place_id, photographer_id, keyword):
     image = Image.open(photo)
     image.thumbnail(PHOTO_SIZE)
     if image._getexif() != None and (36867 in image._getexif()) and re.match(r"\d\d\d\d:\d\d:\d\d \d\d:\d\d:\d\d", image._getexif()[36867]):
@@ -82,6 +82,7 @@ def save_photo(user_id, photo, place_id, photographer_id):
         "VALUES (:user_id, :datetime, NOW(), :description, false, :place_id, :photographer_id) RETURNING id"
     result = db.session.execute(sql, {"user_id":user_id, "datetime":datetime, "description":"", "place_id":place_id, "photographer_id":photographer_id})
     id = result.fetchone()[0]
+    add_keyword(id,keyword)
     db.session.commit()
 
     save_image(image, "photo"+str(id)+".jpg")
