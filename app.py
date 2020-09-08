@@ -117,19 +117,20 @@ def upload_photo_data():
     if not "userid" in session or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
     images = request.files.getlist("photo")
+    public = "public" in request.form
     if len(images) == 1:
         image = images[0]
         if image.filename == "":
             return render_template("upload.html", message="Virhe: tiedostoa ei ole valittu")
         if not image.filename.lower().endswith(".jpg"):
             return render_template("upload.html", message="Virhe: vain JPG tiedostoja")
-        id = photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]), request.form["keyword"])
+        id = photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]), request.form["keyword"],public)
     else:
         count = 0
         for image in images:
             if image.filename.lower().endswith(".jpg"):
                 count += 1
-                photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]), request.form["keyword"])
+                photos.save_photo(session["userid"], image, places.add(request.form["place"]), add_person_todb(request.form["photographer"]), request.form["keyword"],public)
         return render_template("upload.html", all_places=places.get_all_names(), all_persons=get_all_persons(), all_keywords=get_all_keywords(), message="Ladattiin "+str(count)+" kuvaa")
     return redirect("/addinfo/"+str(id))
 
@@ -168,6 +169,7 @@ def addinfo(id):
 
 @app.route("/addinfo/<int:id>", methods=["POST"])
 def addinfo_data(id):
+    back_to_list = True
     if not users.check_permission_to_modify(session, id) or session["csrf_token"] != request.form["csrf_token"]:
         return "Ei oikeuksia"
 
@@ -184,18 +186,27 @@ def addinfo_data(id):
 
     if request.form["add_person"] != "":
         photos.add_person(id, request.form["add_person"])
+        back_to_list = False
     if request.form["remove_person"] != "":
         photos.remove_person(id, request.form["remove_person"])
+        back_to_list = False
     if request.form["add_keyword"] != "":
         photos.add_keyword(id, request.form["add_keyword"])
+        back_to_list = False
     if request.form["remove_keyword"] != "":
         photos.remove_keyword(id, request.form["remove_keyword"])
+        back_to_list = False
     if request.form["add_permission"] != "":
         photos.add_permission(id, request.form["add_permission"])
+        back_to_list = False
     if request.form["remove_permission"] != "":
         photos.remove_permission(id, request.form["remove_permission"])
+        back_to_list = False
     photos.update_attributes(id, datetime, description, photographer_id, place_id, public)
-    return redirect("/view")
+    if back_to_list:
+        return redirect("/view")
+    else:
+        return redirect("/addinfo/"+str(id))
 
 @app.route("/remove/<int:id>", methods=["GET"])
 def remove(id):

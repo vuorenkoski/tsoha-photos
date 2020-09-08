@@ -56,7 +56,7 @@ def set_filters(user_id, f):
             if result != None:
                 values["person_id"]=result[0]
                 filters.append("AND photos_photos.id IN (SELECT photo_id FROM photos_photopersons WHERE person_id=:person_id)")
-        if "keyqord" in f and f["keyword"] != "":
+        if "keyword" in f and f["keyword"] != "":
             sql = "SELECT id FROM photos_keywords WHERE keyword=:keyword"
             result = db.session.execute(sql, {"keyword":f["keyword"]}).fetchone()
             if result != None:
@@ -70,7 +70,7 @@ def set_filters(user_id, f):
                 filters.append("AND photos_photos.user_id=:owner_id") 
     return (values,filters)
 
-def save_photo(user_id, photo, place_id, photographer_id, keyword):
+def save_photo(user_id, photo, place_id, photographer_id, keyword, public):
     image = Image.open(photo)
     image.thumbnail(PHOTO_SIZE)
     if image._getexif() != None and (36867 in image._getexif()) and re.match(r"\d\d\d\d:\d\d:\d\d \d\d:\d\d:\d\d", image._getexif()[36867]):
@@ -79,8 +79,8 @@ def save_photo(user_id, photo, place_id, photographer_id, keyword):
     else:
         datetime = None
     sql = "INSERT INTO photos_photos (user_id, datetime, timestamp, description, public, place_id, photographer_id) " \
-        "VALUES (:user_id, :datetime, NOW(), :description, false, :place_id, :photographer_id) RETURNING id"
-    result = db.session.execute(sql, {"user_id":user_id, "datetime":datetime, "description":"", "place_id":place_id, "photographer_id":photographer_id})
+        "VALUES (:user_id, :datetime, NOW(), :description, :public, :place_id, :photographer_id) RETURNING id"
+    result = db.session.execute(sql, {"user_id":user_id, "datetime":datetime, "description":"", "place_id":place_id, "photographer_id":photographer_id, "public":public})
     id = result.fetchone()[0]
     add_keyword(id,keyword)
     db.session.commit()
