@@ -1,5 +1,5 @@
 from flask import Flask, request, session, render_template, redirect
-from os import getenv, path, urandom
+from os import getenv, urandom
 import re
 
 app = Flask(__name__)

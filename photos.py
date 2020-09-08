@@ -5,9 +5,9 @@ from PIL import Image
 from flask import make_response, send_from_directory
 import os, re
 
-PHOTO_SIZE = (1600,800)
+PHOTO_SIZE = (2400,1600)
 PHOTO_THUMB_SIZE = (100,100)
-USE_PSQL_STORAGE_FOR_JPG = True
+USE_PSQL_STORAGE_FOR_JPG = False
 app.config["UPLOAD_FOLDER"] = "photos/"
 app.config["MAX_CONTENT_PATH"] = 5000000000
 
@@ -97,7 +97,7 @@ def save_image(image, filename):
         db.session.execute(sql, {"filename":filename, "image":f.getvalue()})
         db.session.commit()
     else:
-        image.save(path.join(app.config['UPLOAD_FOLDER'], filename))
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
 def get_attributes(photo_id):
     sql = "SELECT datetime, name, description, public FROM photos_photos " \

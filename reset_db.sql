@@ -1,0 +1,9 @@
+DELETE FROM photos_users;
+DELETE FROM photos_photos;
+DELETE FROM photos_persons;
+DELETE FROM photos_photopersons;
+DELETE FROM photos_keywords;
+DELETE FROM photos_photokeywords;
+DELETE FROM photos_jpgimages;
+DELETE FROM photos_places;
+DELETE FROM photos_permissions;

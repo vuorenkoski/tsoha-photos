@@ -38,8 +38,9 @@ def username_exists(username):
     return db.session.execute(sql, {"username":username}).fetchone()!=None
 
 def new_user(username, password):
-    sql = "INSERT INTO photos_users (username,password,admin) VALUES (:username,:password,false) RETURNING id"
-    id = db.session.execute(sql, {"username":username,"password":generate_password_hash(password)}).fetchone()[0]
+    admin = len(get_all_names())==0
+    sql = "INSERT INTO photos_users (username,password,admin) VALUES (:username,:password,:admin) RETURNING id"
+    id = db.session.execute(sql, {"username":username,"password":generate_password_hash(password), "admin":admin}).fetchone()[0]
     db.session.commit()
     return id
 
