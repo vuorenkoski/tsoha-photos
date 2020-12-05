@@ -4,6 +4,10 @@
 
 Pavelun avulla käyttäjät voivat jakaa ja katsella valokuvia. Valokuviin voi liittää erinäisiä tietoja kuten niiden ottajia, paikkoja, henkilöitä ja ottamispäivämäärä.
 
+## Totetus
+
+Python+Flask
+
 ## Sovelluksen nykytilanne
 
 Sovellukseen on toteuttu kaikki toiminnallisuudet:
